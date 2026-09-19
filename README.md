@@ -16,6 +16,13 @@ python3 -m http.server 8080
 ```
 Then visit **`http://localhost:8080`** in Chrome, Safari, or your preferred browser.
 
+### Runtime architecture
+
+`index.html` loads the modular ES-module runtime through `js/app.js`. The former
+`js/game_engine.js` monolith is retained only as migration reference while its
+remaining systems are moved into the canonical modules. New features should be
+added to `js/state.js`, `js/systems/`, and `js/ui/`, not to the legacy file.
+
 ---
 
 ## 🌟 Feature Overview

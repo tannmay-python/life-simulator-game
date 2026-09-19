@@ -2,11 +2,16 @@
 
 import { COUNTRIES } from "../data/countries.js";
 import { stepFinancialMarkets } from "./finance_engine.js";
-import { stepBusinesses } from "./business_engine.js";
+import { stepBusinessAnnual } from "./business_engine.js";
 import { stepPropertiesAndAssets } from "./property_engine.js";
 import { stepFamilyAndRelationships } from "./relationships_engine.js";
 import { stepLifestyle } from "./lifestyle_engine.js";
-import { calculateNetWorth } from "../state.js";
+import { EDUCATION_STAGES, calculateNetWorth, getEducationStage } from "../state.js";
+import { requestEducationPayment } from "./family_finance_engine.js";
+import { generateAndSetSchoolChoices, ensureSchoolCohort } from "./school_engine.js";
+import { stepAcademicYear } from "./academic_engine.js";
+import { stepStudentWorkYear } from "./student_work_engine.js";
+import { stepStudentLifeYear } from "./student_life_engine.js";
 
 export function ageUpOneYear(state) {
   if (!state.character.alive) {
@@ -18,6 +23,11 @@ export function ageUpOneYear(state) {
   state.character.age += 1;
   const newAge = state.character.age;
   state.stats.energy = 100; // Reset annual energy
+
+  // Siblings age with the character and remain part of the household story.
+  for (const sibling of state.family?.siblings || []) {
+    if (sibling.alive !== false) sibling.age = Math.max(0, (Number(sibling.age) || 0) + 1);
+  }
 
   const yearLogs = [];
   let headline = `Age ${newAge} Milestone`;
@@ -59,48 +69,109 @@ export function ageUpOneYear(state) {
   }
 
   // 2. Schooling & University Progression
-  if (state.education.stage === "High School") {
-    if (newAge < 18) {
-      yearLogs.push(`Completed another rigorous academic year in High School.`);
-    } else if (newAge === 18) {
-      state.education.stage = "Graduated High School";
-      state.stats.smarts = Math.min(100, state.stats.smarts + 5);
-      headline = "High School Graduation!";
-      yearLogs.push(`🎓 Graduated High School with a final GPA of ${state.education.gpa.toFixed(2)}! You are now eligible for premier domestic and international universities.`);
-    }
-  } else if (state.education.currentUniversity) {
+  // Stage is explicit state. Age is used only to advance the default path;
+  // an enrolled university or a deliberate gap/vocational choice wins.
+  if (state.education.currentUniversity) {
     const uni = state.education.currentUniversity;
+    state.education.stage = EDUCATION_STAGES.UNIVERSITY;
     uni.year += 1;
 
-    // Pay university tuition
-    const tuition = uni.tuitionUSD;
-    if (state.finances.cashUSD >= tuition) {
-      state.finances.cashUSD -= tuition;
-      yearLogs.push(`Paid $${tuition.toLocaleString()} in annual tuition for ${uni.name}.`);
-    } else {
-      // Add to student loans
-      state.finances.debt.studentLoansUSD = (state.finances.debt.studentLoansUSD || 0) + tuition;
-      yearLogs.push(`Financed $${tuition.toLocaleString()} in student loans for ${uni.name}.`);
-    }
+    // Tuition is routed through the household/student/loan payer engine.
+    const tuition = uni.annualCostUSD ?? uni.tuitionUSD;
+    const payment = requestEducationPayment(state, {
+      amountUSD: tuition,
+      type: "tuition",
+      description: `${uni.name} annual tuition`,
+      mandatory: true
+    });
+    yearLogs.push(payment.message);
 
-    if (uni.year >= uni.totalYears) {
+    const burnout = state.cognition?.condition?.burnoutLevel || 0;
+    uni.attendancePct = Math.max(58, Math.min(100, Math.round(94 - burnout * 0.22 + (state.stats.health - 70) * 0.08)));
+    uni.creditsCompleted = (uni.creditsCompleted || 0) + (uni.attendancePct >= 70 ? 30 : 18);
+    if (uni.attendancePct < 65) yearLogs.push(`University attendance fell to ${uni.attendancePct}%; academic progress is at risk.`);
+
+    if (uni.year >= (uni.totalYears || 4)) {
       // University Graduation!
       state.education.degrees.push({
-        title: `Bachelor of Science in ${uni.major}`,
+        title: `Bachelor's degree in ${uni.major}`,
         major: uni.major,
         university: uni.name,
         tier: uni.tier,
         graduationAge: newAge
       });
-      state.stats.smarts = Math.min(100, state.stats.smarts + 10);
       state.stats.prestige = Math.min(100, state.stats.prestige + Math.round(uni.prestige / 6));
       headline = `Graduated from ${uni.name}!`;
       yearLogs.push(`🎓 MAGNA CUM LAUDE! Graduated from ${uni.name} with a Degree in ${uni.major}! Alumni network unlocked.`);
       state.education.currentUniversity = null;
-      state.education.stage = "University Graduate";
+      state.education.stage = EDUCATION_STAGES.GRADUATED;
     } else {
       yearLogs.push(`Completed Year ${uni.year - 1} at ${uni.name} studying ${uni.major}.`);
     }
+  } else {
+    const previousStage = state.education.stage;
+    const nextStage = getEducationStage(newAge, null, previousStage);
+    state.education.stage = nextStage;
+
+    if (newAge === 3) {
+      headline = "Preschool Decision";
+      state.education.preschoolCandidates = generateAndSetSchoolChoices(state, newAge);
+      yearLogs.push(`Your household is comparing local preschool options. The choice will affect early learning, cost, and peer exposure.`);
+    } else if (newAge === 6) {
+      headline = "Primary School Begins";
+      if (!state.education.currentInstitution || state.education.currentInstitution.enrolledAtAge < 6) state.education.schoolChoices = generateAndSetSchoolChoices(state, newAge);
+      yearLogs.push(`Primary-school options are open. Tuition, curriculum, teacher quality, and peer environment now matter.`);
+    } else if (newAge === 11) {
+      headline = "Lower Secondary Begins";
+      if (!state.education.currentInstitution) state.education.schoolChoices = generateAndSetSchoolChoices(state, newAge);
+      yearLogs.push(`Entered lower secondary school. Subjects and academic habits are becoming more differentiated.`);
+    } else if (newAge === 14) {
+      headline = "Upper Secondary Begins";
+      state.education.schoolChoices = generateAndSetSchoolChoices(state, newAge, state.education.schoolBoard);
+      state.education.gpa = state.education.gpa ?? 2.5;
+      yearLogs.push(`Entered upper secondary school. Curriculum, subjects, workload, and future pathways now become meaningful choices.`);
+    } else if (newAge === 18 && previousStage === EDUCATION_STAGES.UPPER_SECONDARY) {
+      state.education.stage = EDUCATION_STAGES.GRADUATED;
+      headline = "Secondary School Graduation";
+      const finalGpa = state.education.gpa == null ? 2.5 : state.education.gpa;
+      state.education.gpa = Number(finalGpa.toFixed(2));
+      yearLogs.push(`Completed secondary school with a ${state.education.gpa.toFixed(2)} GPA-equivalent record. Applications, vocational routes, and gap-year choices are now open.`);
+    } else if ([EDUCATION_STAGES.INFANCY, EDUCATION_STAGES.PRESCHOOL, EDUCATION_STAGES.PRIMARY, EDUCATION_STAGES.LOWER_SECONDARY, EDUCATION_STAGES.UPPER_SECONDARY].includes(nextStage)) {
+      yearLogs.push(`Progressed through ${nextStage.replaceAll("_", " ")}.`);
+    }
+  }
+
+  // A school record is only created after enrollment. Once enrolled, the same
+  // institution feeds teachers, coursework, transcript, stress, and peers.
+  if (state.education.currentInstitution && (state.education.currentInstitution.enrolledAtAge || 0) >= 6 && newAge >= 6 && newAge <= 18) {
+    ensureSchoolCohort(state);
+    const schoolPayment = requestEducationPayment(state, {
+      amountUSD: state.education.currentInstitution.totalAnnualCostUSD || state.education.currentInstitution.annualTuitionUSD || 0,
+      type: "school_fees",
+      description: `${state.education.currentInstitution.name} annual education costs`,
+      mandatory: true
+    });
+    if (schoolPayment.amountUSD) yearLogs.push(schoolPayment.message);
+    const academicResult = stepAcademicYear(state);
+    if (academicResult.success) {
+      const displayedGpa = academicResult.gpa ?? state.education.gpa;
+      yearLogs.push(`Academic year completed at ${state.education.currentInstitution.name}: GPA ${displayedGpa == null ? "foundation record" : Number(displayedGpa).toFixed(2)}, attendance ${state.education.academic.attendancePct}%.`);
+      if (state.cognition?.condition?.burnoutLevel >= 60) yearLogs.push(`Academic workload is causing serious burnout; recovery and schedule changes are needed.`);
+      const lifeResult = stepStudentLifeYear(state);
+      yearLogs.push(`School life: ${lifeResult.activeClubs} active activities, ${lifeResult.closeFriends} close friends, discipline standing ${lifeResult.standing}%.`);
+    }
+  }
+
+  const studentWorkResult = stepStudentWorkYear(state);
+  if (studentWorkResult.success) {
+    yearLogs.push(`Student work: ${studentWorkResult.hours}h/week as ${studentWorkResult.job.title}, net income $${studentWorkResult.net.toLocaleString()} credited to the student account.`);
+  }
+
+  if (newAge === 18 && state.finances.studentAccount) {
+    const studentCash = state.finances.studentAccount.cashUSD || 0;
+    state.finances.cashUSD += studentCash;
+    state.finances.studentAccount.cashUSD = 0;
+    yearLogs.push(`At legal majority, $${studentCash.toLocaleString()} moved from the student account into the adult cash account.`);
   }
 
   // 3. Corporate Career Step
@@ -168,8 +239,10 @@ export function ageUpOneYear(state) {
   }
 
   // 5. System Sub-Routines
-  const bizLogs = stepBusinesses(state);
-  yearLogs.push(...bizLogs);
+  for (const business of state.businesses || []) {
+    const financials = stepBusinessAnnual(business, state);
+    yearLogs.push(`${business.name || "Business"} completed its annual operating cycle: ${financials.pnl.netIncome >= 0 ? "profitable" : "loss-making"}.`);
+  }
 
   const propLogs = stepPropertiesAndAssets(state);
   yearLogs.push(...propLogs);

@@ -44,6 +44,7 @@ export function renderFinanceAssetsView(state) {
         <div style="font-size: 12px; color: var(--text-tertiary);">Cash</div>
         <div class="mono-val" style="font-size: 18px; margin-top: 3px;">$${Math.round(state.finances?.cashUSD || 0).toLocaleString()}</div>
       </div>
+      ${state.character.age < 18 ? `<div><div style="font-size: 12px; color: var(--text-tertiary);">Student account</div><div class="mono-val" style="font-size: 18px; margin-top: 3px;">$${Math.round(state.finances?.studentAccount?.cashUSD || 0).toLocaleString()}</div></div>` : ''}
       <div>
         <div style="font-size: 12px; color: var(--text-tertiary);">Equities</div>
         <div class="mono-val" style="font-size: 18px; margin-top: 3px;">$${Math.round(totalStockEquity + totalCryptoEquity).toLocaleString()}</div>

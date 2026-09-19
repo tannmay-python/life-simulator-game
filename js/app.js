@@ -1,10 +1,10 @@
 // Master Application Bootstrap, View Orchestrator, and Age-Up Event Loop
 
 import { getGameState, setGameState, resetGame, saveGameState, calculateNetWorth } from "./state.js";
-import { updateHeaderAndStats, openModal, closeModal, showToast, setActiveTab, getActiveTab } from "./ui_manager.js";
+import { updateHeaderAndStats, openModal, closeModal, showToast, setActiveTab, getActiveTab } from "./ui/ui_manager.js";
 import { renderProfileView, bindProfileEvents } from "./ui/views_profile.js";
 import { renderEducationCareerView, bindEducationCareerEvents } from "./ui/views_education_career.js";
-import { renderBusinessView, bindBusinessEvents } from "./ui/views_business.js";
+import { renderBusinessView, bindBusinessEvents } from "./ui/views_business_modular.js";
 import { renderFinanceAssetsView, bindFinanceAssetsEvents } from "./ui/views_finance_assets.js";
 import { renderRelationshipsView, bindRelationshipsEvents } from "./ui/views_relationships.js";
 import { renderLifestyleView, bindLifestyleEvents } from "./ui/views_lifestyle.js";
@@ -142,9 +142,15 @@ function showNewCharacterModal() {
     <div class="input-group">
       <label class="input-label">Family Background</label>
       <select id="selectFamilyWealth" class="input-field">
-        <option value="middle_class">Middle Class ($1,500 Starting Cash)</option>
-        <option value="affluent">Affluent Professionals ($15,000 Starting Cash)</option>
-        <option value="wealthy">Old Money Dynasty ($100,000 Starting Cash)</option>
+        <option value="severe_hardship">Severe financial hardship</option>
+        <option value="low_income">Low income</option>
+        <option value="working_class">Working class</option>
+        <option value="lower_middle_class">Lower middle class</option>
+        <option value="middle_class" selected>Middle class</option>
+        <option value="upper_middle_class">Upper middle class</option>
+        <option value="affluent">Affluent professional</option>
+        <option value="high_net_worth">High net worth</option>
+        <option value="wealthy">Ultra-high net worth</option>
       </select>
     </div>
     <button class="btn btn-emerald btn-full" id="btnConfirmNewCharacter">Begin New Life</button>
@@ -208,4 +214,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Initial render
   renderCurrentView();
+
+  // Keep the canonical modular state durable even if the tab closes between
+  // normal render-driven saves.
+  window.addEventListener("beforeunload", () => saveGameState(getGameState()));
 });

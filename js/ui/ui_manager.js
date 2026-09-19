@@ -1,6 +1,6 @@
 // Central UI Manager: Navigation routing, modal handling, toast alerts, and header bindings
 
-import { getGameState, saveGameState } from "../state.js";
+import { getGameState, saveGameState, stageLabel } from "../state.js";
 import { COUNTRIES } from "../data/countries.js";
 
 let currentActiveTab = "profile";
@@ -28,7 +28,7 @@ export function updateHeaderAndStats(state) {
   const subEl = document.getElementById("headerSubtitle");
   if (subEl) {
     const jobTitle = state.career.currentJob ? state.career.currentJob.title : (state.education.currentUniversity ? `Student at ${state.education.currentUniversity.name}` : state.education.stage);
-    subEl.innerText = `Age ${state.character.age} · Gen ${state.character.generation} · ${jobTitle} · ${country.name}`;
+    subEl.innerText = `Age ${state.character.age} · Gen ${state.character.generation} · ${jobTitle === state.education.stage ? stageLabel(state.education.stage) : jobTitle} · ${country.name}`;
   }
 
   const nwEl = document.getElementById("headerNetWorth");

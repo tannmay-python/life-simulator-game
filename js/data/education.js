@@ -69,6 +69,63 @@ export const EXAMS = {
     topTierScore: 1540, // Harvard / Stanford / MIT
     description: "Standardized college admissions exam accepted across the United States and globally."
   },
+  act: {
+    id: "act",
+    name: "ACT Composite",
+    country: "usa",
+    costUSD: 75,
+    minAge: 15,
+    maxAge: 20,
+    subject: "English, Math, Reading & Science",
+    scoringType: "score_36",
+    passingScore: 24,
+    topTierScore: 34,
+    description: "US college entrance exam emphasizing speed across English, math, reading, and science reasoning."
+  },
+  uk_admissions: {
+    id: "uk_admissions",
+    name: "UK course admissions test",
+    country: "uk",
+    costUSD: 95,
+    minAge: 16,
+    maxAge: 21,
+    examKey: "uk_admissions",
+    scoringType: "percentile",
+    description: "Course-specific quantitative, verbal, and abstract-reasoning test used by selective UK programs."
+  },
+  uk_mat: {
+    id: "uk_mat",
+    name: "Oxford MAT / Mathematics Admissions Test",
+    country: "uk",
+    costUSD: 85,
+    minAge: 16,
+    maxAge: 21,
+    examKey: "uk_admissions",
+    scoringType: "score_100",
+    description: "Mathematics admissions test for Oxford and related mathematical sciences courses."
+  },
+  uk_pat: {
+    id: "uk_pat",
+    name: "Oxford PAT / Physics Admissions Test",
+    country: "uk",
+    costUSD: 85,
+    minAge: 16,
+    maxAge: 21,
+    examKey: "uk_admissions",
+    scoringType: "score_100",
+    description: "Physics and mathematics admissions test for Oxford engineering and physical-science courses."
+  },
+  uk_tmua: {
+    id: "uk_tmua",
+    name: "TMUA / Test of Mathematics for University Admission",
+    country: "uk",
+    costUSD: 85,
+    minAge: 16,
+    maxAge: 21,
+    examKey: "uk_admissions",
+    scoringType: "score_100",
+    description: "Mathematical reasoning test used by Cambridge, Imperial, LSE, and other UK programs."
+  },
   ielts: {
     id: "ielts",
     name: "IELTS Academic Test",

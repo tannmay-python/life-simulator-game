@@ -2,7 +2,7 @@
 
 import { COUNTRIES } from "../data/countries.js";
 import { showToast, openModal, closeModal } from "./ui_manager.js";
-import { calculateNetWorth } from "../state.js";
+import { applyAcademicAction, calculateNetWorth } from "../state.js";
 
 export function renderProfileView(state) {
   const country = COUNTRIES[state.character.currentCountry] || COUNTRIES.india;
@@ -66,7 +66,7 @@ export function renderProfileView(state) {
             <span class="material-symbols-outlined" style="font-size: 18px; color: var(--text-tertiary);">menu_book</span>
             <span class="action-btn-label">Read and study</span>
           </div>
-          <span class="action-btn-meta">+3 smarts</span>
+          <span class="action-btn-meta">Builds academic mastery</span>
         </button>
 
         <button class="action-btn" id="btnMeditate" type="button">
@@ -110,9 +110,9 @@ export function bindProfileEvents(state, rerenderCallback) {
   const btnStudySelf = document.getElementById("btnStudySelf");
   if (btnStudySelf) {
     btnStudySelf.addEventListener("click", () => {
-      state.stats.smarts = Math.min(100, state.stats.smarts + 3);
+      const result = applyAcademicAction(state, { skillKey: state.education.stage === "upper_secondary" ? "algebra" : "writing", hours: 3, teachingQuality: 0.9 });
       state.stats.happiness = Math.max(10, state.stats.happiness - 1);
-      showToast("Studied deep science and finance papers (+Smarts)", "success");
+      showToast(`Studied deeply (+${result.knowledgeGain} mastery)`, "success");
       rerenderCallback();
     });
   }
@@ -130,11 +130,13 @@ export function bindProfileEvents(state, rerenderCallback) {
   const btnGrooming = document.getElementById("btnGrooming");
   if (btnGrooming) {
     btnGrooming.addEventListener("click", () => {
-      if (state.finances.cashUSD < 250) {
+      const personalCash = state.character.age < 18 ? (state.finances.studentAccount?.cashUSD || 0) : state.finances.cashUSD;
+      if (personalCash < 250) {
         showToast("Insufficient cash for styling salon ($250)", "error");
         return;
       }
-      state.finances.cashUSD -= 250;
+      if (state.character.age < 18) state.finances.studentAccount.cashUSD -= 250;
+      else state.finances.cashUSD -= 250;
       state.stats.looks = Math.min(100, state.stats.looks + 5);
       state.stats.happiness = Math.min(100, state.stats.happiness + 4);
       calculateNetWorth(state);

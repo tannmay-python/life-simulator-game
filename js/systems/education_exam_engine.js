@@ -17,6 +17,18 @@ export const EXAM_COHORTS = {
     gamma: 1.0,
     streamReq: "pcm"
   },
+  jee_advanced: {
+    id: "jee_advanced",
+    name: "JEE Advanced",
+    country: "india",
+    totalCandidates: 180000,
+    minScore: 0,
+    maxScore: 360,
+    mu: 150.0,
+    sigma: 48.0,
+    gamma: 1.25,
+    streamReq: "pcm"
+  },
   neet_ug: {
     id: "neet_ug",
     name: "NEET UG (Medical Entrance)",
@@ -64,10 +76,26 @@ export const EXAM_COHORTS = {
     sigma: 2.9,
     gamma: 1.0,
     streamReq: "any"
+  },
+  uk_admissions: {
+    id: "uk_admissions",
+    name: "UK course admissions test",
+    country: "uk",
+    totalCandidates: 180000,
+    minScore: 0,
+    maxScore: 100,
+    mu: 58,
+    sigma: 14,
+    gamma: 1.0,
+    streamReq: "any"
   }
 };
 
 export class EducationExamEngine {
+  static getMaximumScore(examKey) {
+    return (EXAM_COHORTS[examKey] || EXAM_COHORTS.sat).maxScore;
+  }
+
   /**
    * Generalized Logistic Cumulative Distribution Function
    * Calculates exact percentile against millions of simulated candidates in O(1) time.
@@ -95,19 +123,31 @@ export class EducationExamEngine {
    */
   static runMockExam(character, examKey, mockNumber = 1, previousBayesianState = null) {
     const cohort = EXAM_COHORTS[examKey] || EXAM_COHORTS.sat;
-    const smarts = character.stats.smarts || 75;
+    const cognition = character.cognition || {};
+    const innate = cognition.innate || {};
+    const skills = cognition.learnedSkills || {};
+    const traits = cognition.traits || {};
     const coachingEfficacy = character.education?.coachingEfficacy || 1.0;
     const energy = character.stats.energy || 80;
-    const anxiety = character.stats.stress || 20;
+    const anxiety = cognition.condition?.chronicStress || character.stats.stress || 20;
 
-    const normSmarts = smarts / 100;
-    const baseTarget = cohort.minScore + (cohort.maxScore - cohort.minScore) * (
-      0.30 * normSmarts + 
-      0.35 * Math.pow(normSmarts, 1.4) + 
-      0.25 * (coachingEfficacy / 2.0) +
-      0.05 * ((energy - 50) / 50) -
-      0.05 * (Math.max(0, anxiety - 40) / 60)
-    );
+    const quantitative = ((skills.algebra || 0) * 0.35) + ((skills.calculus || 0) * 0.20) + ((skills.statistics || 0) * 0.10) + ((innate.quantitative || 50) * 0.20) + ((innate.abstractReasoning || 50) * 0.15);
+    const verbal = ((skills.writing || 0) * 0.35) + ((skills.grammar || 0) * 0.25) + ((skills.research || 0) * 0.10) + ((innate.verbal || 50) * 0.20) + ((innate.longTermMemory || 50) * 0.10);
+    const science = ((skills.physics || 0) * 0.28) + ((skills.chemistry || 0) * 0.24) + ((skills.biology || 0) * 0.22) + ((innate.longTermMemory || 50) * 0.12) + ((innate.patternRecognition || 50) * 0.14);
+    const readiness = examKey === "sat"
+      ? (quantitative * 0.52) + (verbal * 0.48)
+      : examKey === "act"
+        ? (quantitative * 0.36) + (verbal * 0.34) + (science * 0.20) + ((innate.processingSpeed || 50) * 0.10)
+        : examKey === "uk_admissions"
+          ? (quantitative * 0.38) + (verbal * 0.28) + (science * 0.22) + ((innate.abstractReasoning || 50) * 0.12)
+      : examKey === "neet_ug"
+        ? (science * 0.72) + (verbal * 0.10) + (innate.workingMemory || 50) * 0.18
+        : (quantitative * 0.45) + (science * 0.40) + ((innate.workingMemory || 50) * 0.15);
+    const condition = Math.max(0.35, Math.min(1.15,
+      0.78 + ((energy - 50) / 300) + ((traits.examTemperament || 50) - 50) / 500 - Math.max(0, anxiety - 40) / 250
+    ));
+    const preparation = Math.max(0, Math.min(1.15, readiness / 100 + ((coachingEfficacy - 1) * 0.10)));
+    const baseTarget = cohort.minScore + (cohort.maxScore - cohort.minScore) * Math.max(0.02, Math.min(0.98, preparation * condition));
 
     const noise = (Math.random() - 0.5) * 2 * (cohort.sigma * 0.4);
     const observedScore = Math.max(cohort.minScore, Math.min(cohort.maxScore, Math.round(baseTarget + noise)));
@@ -156,7 +196,9 @@ export class EducationExamEngine {
     const dAcademic = Math.max(1.0, Math.min(6.0, 7.0 - (aiRaw / 17.0)));
 
     // 2. Extracurricular Depth & Spike (1-6 scale)
-    let dExtracurricular = applicant.ecTier ? (applicant.ecTier * 1.3) : 3.5;
+    // Committee ratings use the conventional 1 (exceptional) to 6 (weak)
+    // direction. Higher activity tiers therefore improve the rating.
+    let dExtracurricular = applicant.ecTier ? (6.4 - applicant.ecTier * 1.08) : 4.2;
     if (applicant.hasSpike) dExtracurricular -= 0.5;
     dExtracurricular = Math.max(1.0, Math.min(6.0, dExtracurricular));
 

@@ -26,14 +26,40 @@ import { showToast, openModal, closeModal } from "./ui_manager.js";
 
 let financeSubtab = "stocks"; // "stocks", "real_estate", "luxury", "forbes"
 
+const formatMoney = n => n >= 1e9 ? "$" + (n / 1e9).toFixed(0) + "B" : "$" + Math.round(n).toLocaleString();
+
 export function renderFinanceAssetsView(state) {
+  const totalStockEquity = Object.entries(state.finances?.stockPortfolio || {}).reduce((sum, [ticker, holding]) => {
+    return sum + ((holding?.shares || 0) * (state.finances.stockPrices[ticker] || 0));
+  }, 0);
+
+  const totalCryptoEquity = Object.entries(state.finances?.cryptoPortfolio || {}).reduce((sum, [symbol, holding]) => {
+    return sum + ((holding?.coins || 0) * (state.finances.cryptoPrices[symbol] || 0));
+  }, 0);
+
   return `
+    <!-- Top 3-Column Balance Grid -->
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; padding: 16px 0; border-bottom: 1px solid var(--hairline); margin-bottom: 24px;">
+      <div>
+        <div style="font-size: 12px; color: var(--text-tertiary);">Cash</div>
+        <div class="mono-val" style="font-size: 18px; margin-top: 3px;">$${Math.round(state.finances?.cashUSD || 0).toLocaleString()}</div>
+      </div>
+      <div>
+        <div style="font-size: 12px; color: var(--text-tertiary);">Equities</div>
+        <div class="mono-val" style="font-size: 18px; margin-top: 3px;">$${Math.round(totalStockEquity + totalCryptoEquity).toLocaleString()}</div>
+      </div>
+      <div>
+        <div style="font-size: 12px; color: var(--text-tertiary);">Margin used</div>
+        <div class="mono-val" style="font-size: 18px; margin-top: 3px;">$${Math.round(state.finances?.debt?.marginLoanUSD || 0).toLocaleString()}</div>
+      </div>
+    </div>
+
     <!-- Subtabs -->
     <div class="subtabs-bar">
-      <button class="subtab-btn ${financeSubtab === 'stocks' ? 'active' : ''}" data-sub="stocks">📈 Stocks & Crypto</button>
-      <button class="subtab-btn ${financeSubtab === 'real_estate' ? 'active' : ''}" data-sub="real_estate">🏠 Real Estate</button>
-      <button class="subtab-btn ${financeSubtab === 'luxury' ? 'active' : ''}" data-sub="luxury">💎 Luxury Assets</button>
-      <button class="subtab-btn ${financeSubtab === 'forbes' ? 'active' : ''}" data-sub="forbes">🏆 Forbes Richest</button>
+      <button class="subtab-btn ${financeSubtab === 'stocks' ? 'active' : ''}" data-sub="stocks" type="button">Markets</button>
+      <button class="subtab-btn ${financeSubtab === 'real_estate' ? 'active' : ''}" data-sub="real_estate" type="button">Real estate</button>
+      <button class="subtab-btn ${financeSubtab === 'luxury' ? 'active' : ''}" data-sub="luxury" type="button">Luxury</button>
+      <button class="subtab-btn ${financeSubtab === 'forbes' ? 'active' : ''}" data-sub="forbes" type="button">Forbes</button>
     </div>
 
     ${financeSubtab === 'stocks' ? renderStocksCryptoSubtab(state) : ''}
@@ -43,344 +69,200 @@ export function renderFinanceAssetsView(state) {
   `;
 }
 
-// 1. Stocks & Crypto Subtab
+// 1. Stocks & Crypto Subtab (Markets)
 function renderStocksCryptoSubtab(state) {
-  // Banking Overview Card
-  const totalStockEquity = Object.entries(state.finances.stockPortfolio).reduce((sum, [ticker, holding]) => {
-    return sum + (holding.shares * (state.finances.stockPrices[ticker] || 0));
-  }, 0);
-
-  const totalCryptoEquity = Object.entries(state.finances.cryptoPortfolio).reduce((sum, [symbol, holding]) => {
-    return sum + (holding.coins * (state.finances.cryptoPrices[symbol] || 0));
-  }, 0);
-
   return `
-    <!-- Banking & Liquidity Card -->
-    <div class="card">
-      <div class="card-title-row">
-        <div class="card-title"><span>🏦</span> Private Banking & Portfolio</div>
-        <span class="pill-badge emerald">4.5% APY</span>
-      </div>
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px; margin-bottom: 12px;">
-        <div>Cash Checking: <strong>$${Math.round(state.finances.cashUSD).toLocaleString()}</strong></div>
-        <div>High-Yield Savings: <strong>$${Math.round(state.finances.savingsUSD).toLocaleString()}</strong></div>
-        <div>Stock Holdings: <strong>$${Math.round(totalStockEquity).toLocaleString()}</strong></div>
-        <div>Crypto Holdings: <strong>$${Math.round(totalCryptoEquity).toLocaleString()}</strong></div>
-        ${state.finances.debt.marginLoanUSD > 0 ? `
-          <div style="grid-column: span 2; color: var(--accent-rose);">Margin Debt: <strong>$${state.finances.debt.marginLoanUSD.toLocaleString()} (6.5% APR)</strong></div>
-        ` : ''}
-      </div>
-
-      <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px;">
-        <button class="btn btn-sm" id="btnDepositSavings">Deposit Savings</button>
-        <button class="btn btn-sm" id="btnWithdrawSavings">Withdraw Savings</button>
-        <button class="btn btn-sm" id="btnBorrowMargin">Borrow Margin</button>
-        <button class="btn btn-sm" id="btnRepayMargin">Repay Margin</button>
-      </div>
+    <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px;">
+      <button class="btn btn-outline btn-sm" id="btnDepositSavings" type="button">Deposit savings</button>
+      <button class="btn btn-outline btn-sm" id="btnWithdrawSavings" type="button">Withdraw savings</button>
+      <button class="btn btn-outline btn-sm" id="btnBorrowMargin" type="button">Borrow margin</button>
+      <button class="btn btn-outline btn-sm" id="btnRepayMargin" type="button">Repay margin</button>
     </div>
 
-    <!-- Equities Market -->
-    <div class="card">
-      <div class="card-title-row">
-        <div class="card-title"><span>📊</span> Public Equities & Indices</div>
-      </div>
-      <div style="display: flex; flex-direction: column; gap: 8px;">
-        ${STOCKS_DATA.map(stock => {
-          const currentPrice = state.finances.stockPrices[stock.ticker] || stock.initialPriceUSD;
-          const holding = state.finances.stockPortfolio[stock.ticker];
-          const history = state.finances.stockHistory[stock.ticker] || [currentPrice];
-          const prevPrice = history.length > 1 ? history[history.length - 2] : currentPrice;
-          const changePct = ((currentPrice - prevPrice) / prevPrice) * 100;
-
-          return `
-            <div class="list-row">
-              <div class="list-row-left">
-                <div class="list-icon-box" style="font-weight: 700; font-size: 11px;">${stock.ticker}</div>
-                <div class="list-row-text">
-                  <h4>${stock.name}</h4>
-                  <p>P/E: ${stock.peRatio} • Div: ${(stock.dividendYieldPct * 100).toFixed(1)}%</p>
-                  ${holding ? `<span class="pill-badge emerald" style="font-size: 9px;">Own ${holding.shares} shares ($${Math.round(holding.shares * currentPrice).toLocaleString()})</span>` : ''}
-                </div>
-              </div>
-              <div class="list-row-right">
-                <div style="font-weight: 700; font-size: 13px;">$${currentPrice.toFixed(2)}</div>
-                <div style="font-size: 11px; color: ${changePct >= 0 ? 'var(--accent-emerald)' : 'var(--accent-rose)'};">
-                  ${changePct >= 0 ? '+' : ''}${changePct.toFixed(1)}%
-                </div>
-                <div style="display: flex; gap: 4px; margin-top: 4px;">
-                  <button class="btn btn-sm btn-primary btn-trade-stock" data-ticker="${stock.ticker}" data-action="buy">Buy</button>
-                  ${holding ? `<button class="btn btn-sm btn-trade-stock" data-ticker="${stock.ticker}" data-action="sell">Sell</button>` : ''}
-                </div>
+    <!-- Public Equities -->
+    <h2 class="section-heading first">Public equities</h2>
+    <div>
+      ${STOCKS_DATA.map(s => {
+        const currentPrice = state.finances?.stockPrices[s.ticker] || s.initialPriceUSD;
+        const pe = s.pe || (Math.round(currentPrice / 4));
+        return `
+          <div class="list-row">
+            <div style="font-family: var(--font-mono); font-size: 14px; min-width: 58px;">${s.ticker}</div>
+            <div style="flex: 1; min-width: 0;">
+              <div style="font-size: 15px;">${s.name}</div>
+              <div style="font-size: 13px; color: var(--text-tertiary); margin-top: 2px;">
+                ${s.sector} · P/E <span style="font-family: var(--font-mono);">${pe}</span>
               </div>
             </div>
-          `;
-        }).join("")}
-      </div>
+            <div style="display: flex; align-items: baseline; gap: 12px;">
+              <div class="mono-val" style="font-size: 15px; white-space: nowrap;">
+                $${currentPrice.toFixed(2)}
+              </div>
+              <button class="btn btn-outline btn-sm btn-trade-stock" data-ticker="${s.ticker}" type="button">
+                Trade
+              </button>
+            </div>
+          </div>
+        `;
+      }).join("")}
     </div>
 
-    <!-- Cryptocurrencies -->
-    <div class="card">
-      <div class="card-title-row">
-        <div class="card-title"><span>🪙</span> Digital Assets & Crypto</div>
-      </div>
-      <div style="display: flex; flex-direction: column; gap: 8px;">
-        ${CRYPTO_DATA.map(crypto => {
-          const currentPrice = state.finances.cryptoPrices[crypto.symbol] || crypto.initialPriceUSD;
-          const holding = state.finances.cryptoPortfolio[crypto.symbol];
-
-          return `
-            <div class="list-row">
-              <div class="list-row-left">
-                <div class="list-icon-box">🪙</div>
-                <div class="list-row-text">
-                  <h4>${crypto.name} (${crypto.symbol})</h4>
-                  <p>${crypto.description.substring(0, 38)}...</p>
-                  ${holding ? `<span class="pill-badge purple" style="font-size: 9px;">Own ${holding.coins.toFixed(3)} ${crypto.symbol} ($${Math.round(holding.coins * currentPrice).toLocaleString()})</span>` : ''}
-                </div>
+    <!-- Digital Assets -->
+    <h2 class="section-heading">Digital assets</h2>
+    <div>
+      ${CRYPTO_DATA.map(c => {
+        const currentPrice = state.finances?.cryptoPrices[c.symbol] || c.initialPriceUSD;
+        return `
+          <div class="list-row">
+            <div style="font-family: var(--font-mono); font-size: 14px; min-width: 58px;">${c.symbol}</div>
+            <div style="flex: 1; font-size: 15px;">${c.name}</div>
+            <div style="display: flex; align-items: baseline; gap: 12px;">
+              <div class="mono-val" style="font-size: 15px; white-space: nowrap;">
+                $${Math.round(currentPrice).toLocaleString()}
               </div>
-              <div class="list-row-right">
-                <div style="font-weight: 700; font-size: 13px;">$${currentPrice.toLocaleString()}</div>
-                <div style="display: flex; gap: 4px; margin-top: 4px;">
-                  <button class="btn btn-sm btn-primary btn-trade-crypto" data-symbol="${crypto.symbol}" data-action="buy">Buy</button>
-                  ${holding ? `<button class="btn btn-sm btn-trade-crypto" data-symbol="${crypto.symbol}" data-action="sell">Sell</button>` : ''}
-                </div>
-              </div>
+              <button class="btn btn-outline btn-sm btn-trade-crypto" data-symbol="${c.symbol}" type="button">
+                Trade
+              </button>
             </div>
-          `;
-        }).join("")}
-      </div>
+          </div>
+        `;
+      }).join("")}
     </div>
   `;
 }
 
-// 2. Real Estate Subtab (Flip, Rent, Renovate)
+// 2. Real Estate Subtab
 function renderRealEstateSubtab(state) {
-  const ownedPropertiesHtml = state.assets.properties.length === 0 ? `
-    <div style="padding: 14px; text-align: center; color: var(--text-secondary); font-size: 12px; background: var(--bg-card); border-radius: var(--radius-lg); border: 1px dashed var(--border-color); margin-bottom: 14px;">
-      You do not own any real estate properties. Acquire land or residential estates below to rent or flip for profit.
-    </div>
-  ` : state.assets.properties.map(prop => `
-    <div class="card" style="border-left: 3px solid var(--accent-blue);">
-      <div class="card-title-row">
-        <div class="card-title">
-          <span>${prop.icon}</span> ${prop.name}
-        </div>
-        <span class="pill-badge emerald">Market: $${prop.marketValueUSD.toLocaleString()}</span>
-      </div>
-
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 12px; margin-bottom: 12px; background: var(--bg-subtle); padding: 8px; border-radius: 8px;">
-        <div>Status: <strong>${prop.isRented ? `Rented ($${prop.annualRentUSD.toLocaleString()}/yr)` : 'Vacant'}</strong></div>
-        <div>Condition: <strong>${prop.conditionPct}%</strong></div>
-        <div>Renovation Tier: <strong>Level ${prop.renovatedLevel}/3</strong></div>
-        ${prop.mortgageBalanceUSD > 0 ? `<div>Mortgage: <strong>$${prop.mortgageBalanceUSD.toLocaleString()}</strong></div>` : '<div>Debt: <strong>None (Free & Clear)</strong></div>'}
-      </div>
-
-      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;">
-        <button class="btn btn-sm btn-renovate-prop" data-id="${prop.instanceId}">
-          🛠️ Renovate
-        </button>
-        <button class="btn btn-sm btn-rent-prop" data-id="${prop.instanceId}">
-          ${prop.isRented ? '🚪 Evict' : '🔑 Lease Out'}
-        </button>
-        <button class="btn btn-sm btn-flip-prop" data-id="${prop.instanceId}" style="color: var(--accent-emerald);">
-          🔄 Flip & Sell
-        </button>
-      </div>
-    </div>
-  `).join("");
+  const properties = PROPERTY_TEMPLATES || [];
+  const ownedProps = state.assets?.properties || [];
 
   return `
-    <h3 style="font-size: 14px; font-weight: 600; margin-bottom: 10px;">Owned Real Estate Portfolio (${state.assets.properties.length})</h3>
-    ${ownedPropertiesHtml}
-
-    <!-- Property Acquisition Catalog -->
-    <div class="card" style="margin-top: 10px;">
-      <div class="card-title-row">
-        <div class="card-title"><span>🏛️</span> Global Real Estate Marketplace</div>
-      </div>
-      <div style="display: flex; flex-direction: column; gap: 10px;">
-        ${PROPERTY_TEMPLATES.map(p => `
-          <div class="list-row" style="flex-direction: column; align-items: flex-start; gap: 6px;">
-            <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
-              <div style="display: flex; align-items: center; gap: 8px;">
-                <div class="list-icon-box">${p.icon}</div>
-                <div>
-                  <h4 style="font-size: 13px; font-weight: 600;">${p.name}</h4>
-                  <span class="pill-badge blue" style="font-size: 9px;">${p.type}</span>
-                </div>
+    ${ownedProps.length > 0 ? `
+      <h2 class="section-heading first">Holdings</h2>
+      <div>
+        ${ownedProps.map(p => `
+          <div class="list-row">
+            <div class="list-row-left">
+              <div style="font-size: 15px;">${p.name}</div>
+              <div style="font-size: 13px; color: var(--text-tertiary); margin-top: 2px;">
+                Value: <span style="font-family: var(--font-mono);">$${p.marketValueUSD.toLocaleString()}</span> · Rent: <span style="font-family: var(--font-mono);">$${p.annualRentUSD.toLocaleString()}/yr</span>
               </div>
-              <div style="font-weight: 700; font-size: 13px;">$${p.basePriceUSD.toLocaleString()}</div>
             </div>
-            <p style="font-size: 11px; color: var(--text-secondary);">${p.description}</p>
-            <div style="display: flex; gap: 6px; width: 100%;">
-              <button class="btn btn-sm btn-primary btn-buy-property" data-template="${p.id}" data-mortgage="false" style="flex: 1;">
-                Buy All-Cash ($${p.basePriceUSD.toLocaleString()})
-              </button>
-              <button class="btn btn-sm btn-buy-property" data-template="${p.id}" data-mortgage="true" style="flex: 1;">
-                20% Mortgage Down ($${Math.round(p.basePriceUSD * 0.20).toLocaleString()})
-              </button>
+            <div style="display: flex; gap: 6px;">
+              <button class="btn btn-outline btn-sm btn-renovate-prop" data-id="${p.id}" type="button">Renovate</button>
+              <button class="btn btn-outline btn-sm btn-rent-prop" data-id="${p.id}" type="button">${p.isRented ? 'Leased' : 'Lease'}</button>
+              <button class="btn btn-outline btn-sm btn-flip-prop" data-id="${p.id}" type="button">Flip</button>
             </div>
           </div>
         `).join("")}
       </div>
+    ` : ''}
+
+    <h2 class="section-heading ${ownedProps.length === 0 ? 'first' : ''}">Marketplace</h2>
+    <div>
+      ${properties.map(p => {
+        const strategy = p.type === 'commercial' ? 'Corporate lease' : (p.type === 'luxury' ? 'Luxury Airbnb' : (p.baseCostUSD > 5000000 ? 'Hold' : 'Standard rent'));
+        return `
+          <div class="list-row">
+            <div style="flex: 1; min-width: 0;">
+              <div style="font-size: 15px;">${p.name}</div>
+              <div style="font-size: 13px; color: var(--text-tertiary); margin-top: 2px;">${strategy}</div>
+            </div>
+            <div style="display: flex; align-items: baseline; gap: 12px;">
+              <div class="mono-val" style="font-size: 15px; white-space: nowrap;">
+                $${p.baseCostUSD.toLocaleString()}
+              </div>
+              <button class="btn btn-outline btn-sm btn-buy-property" data-template="${p.id}" data-mortgage="false" type="button">
+                Acquire
+              </button>
+            </div>
+          </div>
+        `;
+      }).join("")}
     </div>
   `;
 }
 
-// 3. Luxury Assets Subtab
+// 3. Luxury Subtab
 function renderLuxuryAssetsSubtab(state) {
+  const luxuryList = [
+    { id: "porsche_911", name: "Porsche 911 GT3", cat: "Automobile", price: 225000 },
+    { id: "ferrari_sp3", name: "Ferrari Daytona SP3", cat: "Automobile", price: 2250000 },
+    { id: "bugatti_chiron", name: "Bugatti Chiron", cat: "Automobile", price: 3800000 },
+    { id: "ferrari_250gto", name: "1962 Ferrari 250 GTO", cat: "Classic", price: 48000000 },
+    { id: "gulfstream_g700", name: "Gulfstream G700", cat: "Aviation", price: 78000000 },
+    { id: "benetti_yacht", name: "Benetti superyacht", cat: "Marine", price: 95000000 },
+    { id: "lurssen_yacht", name: "Lürssen superyacht", cat: "Marine", price: 250000000 },
+    { id: "monet_waterlilies", name: "Monet masterpiece", cat: "Fine art", price: 65000000 },
+    { id: "basquiat_canvas", name: "Basquiat masterpiece", cat: "Fine art", price: 85000000 }
+  ];
+
   return `
-    <!-- Supercars & Hypercars -->
-    <div class="card">
-      <div class="card-title-row">
-        <div class="card-title"><span>🏎️</span> Exotic Hypercars & Classic Automobilia</div>
-      </div>
-      <div style="display: flex; flex-direction: column; gap: 8px;">
-        ${LUXURY_VEHICLES.map(v => {
-          const owned = state.assets.vehicles.some(item => item.id === v.id);
-          return `
-            <div class="list-row">
-              <div class="list-row-left">
-                <div class="list-icon-box">${v.icon}</div>
-                <div class="list-row-text">
-                  <h4>${v.name}</h4>
-                  <p>${v.category} • Prestige +${v.prestige}</p>
-                </div>
-              </div>
-              <div class="list-row-right">
-                <div style="font-weight: 700; font-size: 12px; margin-bottom: 4px;">$${v.priceUSD.toLocaleString()}</div>
-                ${owned ? `<span class="pill-badge emerald">In Garage</span>` : `
-                  <button class="btn btn-sm btn-primary btn-buy-vehicle" data-id="${v.id}">Acquire</button>
-                `}
-              </div>
+    <h2 class="section-heading first">Collections</h2>
+    <div>
+      ${luxuryList.map(l => `
+        <div class="list-row">
+          <div style="flex: 1; min-width: 0;">
+            <div style="font-size: 15px;">${l.name}</div>
+            <div style="font-size: 13px; color: var(--text-tertiary); margin-top: 2px;">${l.cat}</div>
+          </div>
+          <div style="display: flex; align-items: baseline; gap: 12px;">
+            <div class="mono-val" style="font-size: 15px; white-space: nowrap;">
+              $${l.price.toLocaleString()}
             </div>
-          `;
-        }).join("")}
-      </div>
-    </div>
-
-    <!-- Private Aviation & Superyachts -->
-    <div class="card">
-      <div class="card-title-row">
-        <div class="card-title"><span>✈️</span> Private Aviation & Mega-Yachts</div>
-      </div>
-      <div style="display: flex; flex-direction: column; gap: 8px;">
-        ${AVIATION_MARINE.map(am => {
-          const owned = state.assets.aviationMarine.some(item => item.id === am.id);
-          return `
-            <div class="list-row">
-              <div class="list-row-left">
-                <div class="list-icon-box">${am.icon}</div>
-                <div class="list-row-text">
-                  <h4>${am.name}</h4>
-                  <p>Upkeep: $${am.annualMaintenanceUSD.toLocaleString()}/yr • Prestige +${am.prestige}</p>
-                </div>
-              </div>
-              <div class="list-row-right">
-                <div style="font-weight: 700; font-size: 12px; margin-bottom: 4px;">$${am.priceUSD.toLocaleString()}</div>
-                ${owned ? `<span class="pill-badge emerald">Chartered</span>` : `
-                  <button class="btn btn-sm btn-primary btn-buy-am" data-id="${am.id}">Acquire</button>
-                `}
-              </div>
-            </div>
-          `;
-        }).join("")}
-      </div>
-    </div>
-
-    <!-- Fine Art & Museum Masterpieces -->
-    <div class="card">
-      <div class="card-title-row">
-        <div class="card-title"><span>🎨</span> Fine Art & Sotheby's Masterpieces</div>
-      </div>
-      <div style="display: flex; flex-direction: column; gap: 8px;">
-        ${FINE_ART_COLLECTIBLES.map(art => {
-          const owned = state.assets.fineArtCollectibles.some(item => item.id === art.id);
-          return `
-            <div class="list-row">
-              <div class="list-row-left">
-                <div class="list-icon-box">${art.icon}</div>
-                <div class="list-row-text">
-                  <h4>${art.name}</h4>
-                  <p>Appreciation: +${(art.appreciationRate * 100).toFixed(0)}%/yr • Prestige +${art.prestige}</p>
-                </div>
-              </div>
-              <div class="list-row-right">
-                <div style="font-weight: 700; font-size: 12px; margin-bottom: 4px;">$${art.priceUSD.toLocaleString()}</div>
-                ${owned ? `<span class="pill-badge emerald">In Private Vault</span>` : `
-                  <button class="btn btn-sm btn-primary btn-buy-art" data-id="${art.id}">Acquire</button>
-                `}
-              </div>
-            </div>
-          `;
-        }).join("")}
-      </div>
+            <button class="btn btn-outline btn-sm btn-buy-luxury-item" data-id="${l.id}" data-price="${l.price}" data-name="${l.name}" type="button">
+              Acquire
+            </button>
+          </div>
+        </div>
+      `).join("")}
     </div>
   `;
 }
 
-// 4. Forbes Richest Subtab
+// 4. Forbes Subtab
 function renderForbesSubtab(state) {
-  // Merge player into leaderboard
-  const playerEntry = {
-    isPlayer: true,
-    name: `${state.character.firstName} ${state.character.lastName}`,
-    netWorthUSD: state.finances.netWorthUSD,
-    country: state.character.currentCountry.toUpperCase(),
-    flag: "👑",
-    source: state.businesses.length > 0 ? state.businesses[0].name : (state.career.currentJob ? state.career.currentJob.title : "Diversified Portfolio"),
-    industry: "Conglomerate & Tech",
-    age: state.character.age
-  };
+  const billionaires = [
+    [1, "Elon Musk", "Tesla, SpaceX, xAI", 245e9],
+    [2, "Bernard Arnault & Family", "LVMH Moët Hennessy", 215e9],
+    [3, "Jeff Bezos", "Amazon, Blue Origin", 205e9],
+    [4, "Mark Zuckerberg", "Meta Platforms", 185e9],
+    [5, "Larry Ellison", "Oracle Corporation", 165e9],
+    [6, "Warren Buffett", "Berkshire Hathaway", 140e9],
+    [7, "Bill Gates", "Microsoft, Breakthrough Energy", 130e9],
+    [8, "Jensen Huang", "Nvidia", 120e9],
+    [9, "Mukesh Ambani", "Reliance Industries, Jio, Retail", 118e9],
+    [10, "Michael Bloomberg", "Bloomberg LP", 105e9]
+  ];
 
-  const combined = [...FORBES_TITANS, playerEntry].sort((a, b) => b.netWorthUSD - a.netWorthUSD);
-  const playerRank = combined.findIndex(item => item.isPlayer) + 1;
+  const charName = `${state.character.firstName} ${state.character.lastName}`;
+  const charWorth = state.finances?.netWorth || 0;
 
   return `
-    <div class="card" style="background: linear-gradient(135deg, #181822, #101018); border-color: rgba(245, 158, 11, 0.3);">
-      <div class="card-title-row">
-        <div class="card-title" style="color: var(--accent-amber);">
-          <span>🏆</span> Forbes Real-Time Billionaires
+    <h2 class="section-heading first">World's billionaires</h2>
+    <div>
+      ${billionaires.map(([rank, name, source, w]) => `
+        <div class="list-row">
+          <div style="font-family: var(--font-mono); font-size: 13px; color: var(--text-tertiary); min-width: 28px;">${rank}</div>
+          <div style="flex: 1; min-width: 0;">
+            <div style="font-size: 15px;">${name}</div>
+            <div style="font-size: 13px; color: var(--text-tertiary); margin-top: 2px;">${source}</div>
+          </div>
+          <div class="mono-val" style="font-size: 15px; white-space: nowrap;">${formatMoney(w)}</div>
         </div>
-        <span class="pill-badge amber">Your World Rank: #${playerRank}</span>
-      </div>
-      <p style="font-size: 11px; color: var(--text-secondary); margin-bottom: 12px;">
-        Tracking the fortunes of global captains of industry, tech moguls, and self-made titans.
-      </p>
+      `).join("")}
 
-      <div style="display: flex; flex-direction: column; gap: 8px; max-height: 520px; overflow-y: auto; padding-right: 4px;">
-        ${combined.map((titan, index) => {
-          const rank = index + 1;
-          const isMe = titan.isPlayer;
-
-          return `
-            <div class="list-row" style="${isMe ? 'background: rgba(99, 102, 241, 0.15); border-radius: 8px; padding: 10px 8px; border: 1px solid var(--accent-primary);' : ''}">
-              <div class="list-row-left">
-                <div style="font-size: 13px; font-weight: 700; color: ${rank <= 3 ? 'var(--accent-amber)' : 'var(--text-secondary)'}; width: 24px;">
-                  #${rank}
-                </div>
-                <div>
-                  <h4 style="font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px;">
-                    ${titan.name} ${titan.flag || ''} ${isMe ? '<span class="pill-badge blue" style="font-size: 9px;">YOU</span>' : ''}
-                  </h4>
-                  <p style="font-size: 11px; color: var(--text-secondary);">${titan.source} (${titan.country})</p>
-                </div>
-              </div>
-              <div class="list-row-right">
-                <div style="font-weight: 700; font-size: 13px; color: var(--accent-emerald);">
-                  $${(titan.netWorthUSD >= 1000000000 ? (titan.netWorthUSD / 1000000000).toFixed(1) + ' B' : (titan.netWorthUSD / 1000000).toFixed(1) + ' M')}
-                </div>
-              </div>
-            </div>
-          `;
-        }).join("")}
+      <div class="list-row" style="border-top: 1px solid rgba(22,21,15,0.20); margin-top: -1px;">
+        <div style="font-family: var(--font-mono); font-size: 13px; color: var(--text-tertiary); min-width: 28px;">—</div>
+        <div style="flex: 1; font-size: 15px;">${charName}</div>
+        <div class="mono-val" style="font-size: 15px;">$${Math.round(charWorth).toLocaleString()}</div>
       </div>
     </div>
   `;
 }
 
 export function bindFinanceAssetsEvents(state, rerenderCallback) {
-  // Subtabs
+  // Subtab navigation
   document.querySelectorAll(".subtab-btn").forEach(btn => {
     btn.addEventListener("click", () => {
       financeSubtab = btn.dataset.sub;
@@ -388,19 +270,20 @@ export function bindFinanceAssetsEvents(state, rerenderCallback) {
     });
   });
 
-  // Banking
-  const btnDeposit = document.getElementById("btnDepositSavings");
-  if (btnDeposit) {
-    btnDeposit.addEventListener("click", () => {
-      openModal("Deposit to High-Yield Savings", `
+  // Banking Actions
+  const btnDepositSavings = document.getElementById("btnDepositSavings");
+  if (btnDepositSavings) {
+    btnDepositSavings.addEventListener("click", () => {
+      openModal("Deposit to high-yield savings", `
         <div class="input-group">
-          <label class="input-label">Deposit Amount ($)</label>
-          <input type="number" id="inputDeposit" class="input-field" value="${Math.min(state.finances.cashUSD, 10000)}">
+          <label class="input-label">Deposit amount ($)</label>
+          <input type="number" id="inputDepositSavingsAmt" class="input-field" value="5000">
         </div>
-        <button class="btn btn-emerald btn-full" id="btnConfirmDeposit">Confirm Deposit (4.5% APY)</button>
+        <button class="btn btn-primary btn-full" id="btnConfirmDepositSavings" type="button">Deposit</button>
       `);
-      document.getElementById("btnConfirmDeposit").addEventListener("click", () => {
-        const amt = document.getElementById("inputDeposit").value;
+
+      document.getElementById("btnConfirmDepositSavings")?.addEventListener("click", () => {
+        const amt = parseFloat(document.getElementById("inputDepositSavingsAmt").value);
         const res = depositSavings(state, amt);
         closeModal();
         showToast(res.message, res.success ? "success" : "error");
@@ -409,18 +292,19 @@ export function bindFinanceAssetsEvents(state, rerenderCallback) {
     });
   }
 
-  const btnWithdraw = document.getElementById("btnWithdrawSavings");
-  if (btnWithdraw) {
-    btnWithdraw.addEventListener("click", () => {
-      openModal("Withdraw from High-Yield Savings", `
+  const btnWithdrawSavings = document.getElementById("btnWithdrawSavings");
+  if (btnWithdrawSavings) {
+    btnWithdrawSavings.addEventListener("click", () => {
+      openModal("Withdraw from savings", `
         <div class="input-group">
-          <label class="input-label">Withdraw Amount ($)</label>
-          <input type="number" id="inputWithdraw" class="input-field" value="${state.finances.savingsUSD}">
+          <label class="input-label">Withdraw amount ($)</label>
+          <input type="number" id="inputWithdrawSavingsAmt" class="input-field" value="5000">
         </div>
-        <button class="btn btn-primary btn-full" id="btnConfirmWithdraw">Confirm Withdrawal</button>
+        <button class="btn btn-primary btn-full" id="btnConfirmWithdrawSavings" type="button">Withdraw</button>
       `);
-      document.getElementById("btnConfirmWithdraw").addEventListener("click", () => {
-        const amt = document.getElementById("inputWithdraw").value;
+
+      document.getElementById("btnConfirmWithdrawSavings")?.addEventListener("click", () => {
+        const amt = parseFloat(document.getElementById("inputWithdrawSavingsAmt").value);
         const res = withdrawSavings(state, amt);
         closeModal();
         showToast(res.message, res.success ? "success" : "error");
@@ -432,18 +316,16 @@ export function bindFinanceAssetsEvents(state, rerenderCallback) {
   const btnBorrowMargin = document.getElementById("btnBorrowMargin");
   if (btnBorrowMargin) {
     btnBorrowMargin.addEventListener("click", () => {
-      openModal("Borrow Margin Loan", `
-        <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 10px;">
-          Borrow liquidity against your equities portfolio without selling shares or triggering capital gains tax (6.5% APR).
-        </p>
+      openModal("Borrow margin credit", `
         <div class="input-group">
-          <label class="input-label">Loan Amount ($)</label>
-          <input type="number" id="inputMargin" class="input-field" placeholder="Enter amount">
+          <label class="input-label">Margin loan amount ($)</label>
+          <input type="number" id="inputBorrowMarginAmt" class="input-field" value="25000">
         </div>
-        <button class="btn btn-primary btn-full" id="btnConfirmMargin">Borrow Cash</button>
+        <button class="btn btn-primary btn-full" id="btnConfirmBorrowMargin" type="button">Borrow</button>
       `);
-      document.getElementById("btnConfirmMargin").addEventListener("click", () => {
-        const amt = document.getElementById("inputMargin").value;
+
+      document.getElementById("btnConfirmBorrowMargin")?.addEventListener("click", () => {
+        const amt = parseFloat(document.getElementById("inputBorrowMarginAmt").value);
         const res = borrowMargin(state, amt);
         closeModal();
         showToast(res.message, res.success ? "success" : "error");
@@ -455,31 +337,54 @@ export function bindFinanceAssetsEvents(state, rerenderCallback) {
   const btnRepayMargin = document.getElementById("btnRepayMargin");
   if (btnRepayMargin) {
     btnRepayMargin.addEventListener("click", () => {
-      const res = repayMargin(state, state.finances.debt.marginLoanUSD);
-      showToast(res.message, res.success ? "success" : "error");
-      rerenderCallback();
+      openModal("Repay margin debt", `
+        <div class="input-group">
+          <label class="input-label">Repay amount ($)</label>
+          <input type="number" id="inputRepayMarginAmt" class="input-field" value="25000">
+        </div>
+        <button class="btn btn-primary btn-full" id="btnConfirmRepayMargin" type="button">Repay</button>
+      `);
+
+      document.getElementById("btnConfirmRepayMargin")?.addEventListener("click", () => {
+        const amt = parseFloat(document.getElementById("inputRepayMarginAmt").value);
+        const res = repayMargin(state, amt);
+        closeModal();
+        showToast(res.message, res.success ? "success" : "error");
+        rerenderCallback();
+      });
     });
   }
 
-  // Stock trading
+  // Stock Trading
   document.querySelectorAll(".btn-trade-stock").forEach(btn => {
     btn.addEventListener("click", () => {
       const ticker = btn.dataset.ticker;
-      const action = btn.dataset.action;
-      const price = state.finances.stockPrices[ticker];
+      const stock = STOCKS_DATA.find(s => s.ticker === ticker);
+      const price = state.finances?.stockPrices[ticker] || stock.initialPriceUSD;
+      const holding = state.finances?.stockPortfolio[ticker] || { shares: 0 };
 
-      openModal(`${action.toUpperCase()} ${ticker} ($${price.toFixed(2)}/share)`, `
-        <div class="input-group">
-          <label class="input-label">Share Quantity</label>
-          <input type="number" id="inputStockShares" class="input-field" value="10">
+      openModal(`Trade ${ticker} (${stock.name})`, `
+        <div class="detail-grid" style="padding-top: 0; margin-bottom: 14px;">
+          <div><div class="detail-label">Price</div><div class="detail-val-mono">$${price.toFixed(2)}</div></div>
+          <div><div class="detail-label">Owned</div><div class="detail-val-mono">${holding.shares} shares</div></div>
         </div>
-        <button class="btn ${action === 'buy' ? 'btn-emerald' : 'btn-primary'} btn-full" id="btnConfirmStockTrade">
-          Confirm ${action.toUpperCase()}
-        </button>
+        <div class="input-group">
+          <label class="input-label">Action</label>
+          <select id="selectStockAction" class="input-field">
+            <option value="buy">Buy</option>
+            <option value="sell">Sell</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label class="input-label">Number of shares</label>
+          <input type="number" id="inputStockShares" class="input-field" value="50">
+        </div>
+        <button class="btn btn-primary btn-full" id="btnConfirmStockTrade" type="button">Execute trade</button>
       `);
 
-      document.getElementById("btnConfirmStockTrade").addEventListener("click", () => {
-        const shares = document.getElementById("inputStockShares").value;
+      document.getElementById("btnConfirmStockTrade")?.addEventListener("click", () => {
+        const action = document.getElementById("selectStockAction").value;
+        const shares = parseInt(document.getElementById("inputStockShares").value);
         const res = action === "buy" ? buyStock(state, ticker, shares) : sellStock(state, ticker, shares);
         closeModal();
         showToast(res.message, res.success ? "celebrate" : "error");
@@ -488,25 +393,36 @@ export function bindFinanceAssetsEvents(state, rerenderCallback) {
     });
   });
 
-  // Crypto trading
+  // Crypto Trading
   document.querySelectorAll(".btn-trade-crypto").forEach(btn => {
     btn.addEventListener("click", () => {
       const symbol = btn.dataset.symbol;
-      const action = btn.dataset.action;
-      const price = state.finances.cryptoPrices[symbol];
+      const crypto = CRYPTO_DATA.find(c => c.symbol === symbol);
+      const price = state.finances?.cryptoPrices[symbol] || crypto.initialPriceUSD;
+      const holding = state.finances?.cryptoPortfolio[symbol] || { coins: 0 };
 
-      openModal(`${action.toUpperCase()} ${symbol} ($${price.toLocaleString()})`, `
-        <div class="input-group">
-          <label class="input-label">${action === 'buy' ? 'Amount in USD ($)' : 'Coins to Sell'}</label>
-          <input type="number" id="inputCryptoAmt" class="input-field" value="${action === 'buy' ? '5000' : '0.1'}">
+      openModal(`Trade ${symbol}`, `
+        <div class="detail-grid" style="padding-top: 0; margin-bottom: 14px;">
+          <div><div class="detail-label">Price</div><div class="detail-val-mono">$${price.toLocaleString()}</div></div>
+          <div><div class="detail-label">Owned</div><div class="detail-val-mono">${holding.coins.toFixed(4)} ${symbol}</div></div>
         </div>
-        <button class="btn ${action === 'buy' ? 'btn-emerald' : 'btn-primary'} btn-full" id="btnConfirmCryptoTrade">
-          Confirm ${action.toUpperCase()}
-        </button>
+        <div class="input-group">
+          <label class="input-label">Action</label>
+          <select id="selectCryptoAction" class="input-field">
+            <option value="buy">Buy (USD amount)</option>
+            <option value="sell">Sell (coins)</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label class="input-label">Amount</label>
+          <input type="number" id="inputCryptoAmt" class="input-field" value="5000">
+        </div>
+        <button class="btn btn-primary btn-full" id="btnConfirmCryptoTrade" type="button">Execute trade</button>
       `);
 
-      document.getElementById("btnConfirmCryptoTrade").addEventListener("click", () => {
-        const val = document.getElementById("inputCryptoAmt").value;
+      document.getElementById("btnConfirmCryptoTrade")?.addEventListener("click", () => {
+        const action = document.getElementById("selectCryptoAction").value;
+        const val = parseFloat(document.getElementById("inputCryptoAmt").value);
         const res = action === "buy" ? buyCrypto(state, symbol, val) : sellCrypto(state, symbol, val);
         closeModal();
         showToast(res.message, res.success ? "celebrate" : "error");
@@ -556,27 +472,19 @@ export function bindFinanceAssetsEvents(state, rerenderCallback) {
     });
   });
 
-  // Luxury buys
-  document.querySelectorAll(".btn-buy-vehicle").forEach(btn => {
+  // Luxury Acquisition
+  document.querySelectorAll(".btn-buy-luxury-item").forEach(btn => {
     btn.addEventListener("click", () => {
-      const res = buyLuxuryVehicle(state, btn.dataset.id);
-      showToast(res.message, res.success ? "celebrate" : "error");
-      rerenderCallback();
-    });
-  });
-
-  document.querySelectorAll(".btn-buy-am").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const res = buyAviationMarine(state, btn.dataset.id);
-      showToast(res.message, res.success ? "celebrate" : "error");
-      rerenderCallback();
-    });
-  });
-
-  document.querySelectorAll(".btn-buy-art").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const res = buyFineArt(state, btn.dataset.id);
-      showToast(res.message, res.success ? "celebrate" : "error");
+      const price = parseFloat(btn.dataset.price);
+      const name = btn.dataset.name;
+      if (state.finances.cashUSD < price) {
+        showToast(`Insufficient cash for ${name}`, "error");
+        return;
+      }
+      state.finances.cashUSD -= price;
+      if (!state.assets.luxury) state.assets.luxury = [];
+      state.assets.luxury.push({ name, priceUSD: price });
+      showToast(`Acquired ${name}`, "celebrate");
       rerenderCallback();
     });
   });

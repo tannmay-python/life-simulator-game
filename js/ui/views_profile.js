@@ -8,75 +8,90 @@ export function renderProfileView(state) {
   const country = COUNTRIES[state.character.currentCountry] || COUNTRIES.india;
   const birthCountry = COUNTRIES[state.character.birthCountry] || COUNTRIES.india;
 
-  const ledgerHtml = state.ledger.map(item => `
-    <div class="ledger-item">
-      <div class="ledger-headline">
-        <span>Age ${item.age}: ${item.headline}</span>
-        <span style="font-size: 11px; float: right; color: ${item.cashChangeUSD >= 0 ? 'var(--accent-emerald)' : 'var(--accent-rose)'};">
-          ${item.cashChangeUSD >= 0 ? '+' : ''}$${Math.round(item.cashChangeUSD).toLocaleString()}
-        </span>
+  const ledgerHtml = state.ledger.slice().reverse().map(item => {
+    const cleanHeadline = (item.headline || "").replace(/[\u{1F300}-\u{1F9FF}]/gu, '').replace(/[!！]+$/, '').trim();
+    return `
+      <div class="ledger-row">
+        <div class="ledger-age">Age ${item.age}</div>
+        <div class="ledger-body">
+          <div class="ledger-headline">${cleanHeadline}</div>
+          ${(item.logs || []).map(log => {
+            const cleanLog = log.replace(/^[•·\s]+/, '').replace(/[\u{1F300}-\u{1F9FF}]/gu, '').replace(/[!！]+$/, '').trim();
+            return `<div class="ledger-logs">${cleanLog}</div>`;
+          }).join("")}
+        </div>
+        <div class="ledger-cash">
+          ${item.cashChangeUSD ? `${item.cashChangeUSD >= 0 ? '+' : ''}$${Math.round(item.cashChangeUSD).toLocaleString()}` : ''}
+        </div>
       </div>
-      ${item.logs.map(log => `<p class="ledger-log-text">• ${log}</p>`).join("")}
-    </div>
-  `).join("");
+    `;
+  }).join("");
 
   return `
-    <!-- Identity Overview Card -->
-    <div class="card">
-      <div class="card-title-row">
-        <div class="card-title">
-          <span>👤</span> Personal Identity
-        </div>
-        <span class="pill-badge blue">Generation ${state.character.generation}</span>
-      </div>
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 12px; margin-bottom: 12px;">
+    <section style="padding-top: 8px;">
+      <!-- Identity Section -->
+      <h2 class="section-heading first">Identity</h2>
+      <div class="detail-grid">
         <div>
-          <span style="color: var(--text-muted);">Birthplace:</span>
-          <div>${birthCountry.name} ${birthCountry.flag}</div>
+          <div class="detail-label">Birthplace</div>
+          <div class="detail-val">${birthCountry.name}</div>
         </div>
         <div>
-          <span style="color: var(--text-muted);">Tax Residency:</span>
-          <div>${state.character.taxHaven ? `<span style="color: var(--accent-emerald); font-weight:600;">${state.character.taxHaven.toUpperCase()} (0% Tax)</span>` : `${country.name} ${country.flag}`}</div>
+          <div class="detail-label">Tax residency</div>
+          <div class="detail-val">${state.character.taxHaven ? `${state.character.taxHaven.toUpperCase()} (0% tax)` : country.name}</div>
         </div>
         <div>
-          <span style="color: var(--text-muted);">Credit Score:</span>
-          <div style="font-weight: 600; color: ${state.stats.creditScore >= 720 ? 'var(--accent-emerald)' : 'var(--accent-amber)'};">${state.stats.creditScore} (FICO / CIBIL)</div>
+          <div class="detail-label">Credit score</div>
+          <div class="detail-val-mono">${state.stats.creditScore !== null ? state.stats.creditScore : '—'}</div>
         </div>
         <div>
-          <span style="color: var(--text-muted);">Societal Prestige:</span>
-          <div style="font-weight: 600; color: var(--accent-purple);">${state.stats.prestige}/100</div>
+          <div class="detail-label">Societal standing</div>
+          <div class="detail-val-mono">${state.stats.prestige || 10}<span style="color: var(--text-tertiary);">/100</span></div>
         </div>
       </div>
 
-      <!-- Quick Self-Improvement Actions -->
-      <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
-        <button class="btn btn-sm" id="btnWorkout">
-          <span>💪</span> Gym & Fitness
+      <!-- Actions Section -->
+      <h2 class="section-heading">Actions</h2>
+      <div class="actions-grid">
+        <button class="action-btn" id="btnWorkout" type="button">
+          <div class="action-btn-left">
+            <span class="material-symbols-outlined" style="font-size: 18px; color: var(--text-tertiary);">fitness_center</span>
+            <span class="action-btn-label">Gym and fitness</span>
+          </div>
+          <span class="action-btn-meta">+4 health</span>
         </button>
-        <button class="btn btn-sm" id="btnStudySelf">
-          <span>📚</span> Read & Study
-        </button>
-        <button class="btn btn-sm" id="btnMeditate">
-          <span>🧘</span> Meditate & Relax
-        </button>
-        <button class="btn btn-sm" id="btnGrooming">
-          <span>✨</span> Styling & Salon ($250)
-        </button>
-      </div>
-    </div>
 
-    <!-- Annual Life Ledger Feed -->
-    <div class="card">
-      <div class="card-title-row">
-        <div class="card-title">
-          <span>📜</span> Life Chronicles & Ledger
-        </div>
-        <span class="pill-badge">${state.ledger.length} Milestones</span>
+        <button class="action-btn" id="btnStudySelf" type="button">
+          <div class="action-btn-left">
+            <span class="material-symbols-outlined" style="font-size: 18px; color: var(--text-tertiary);">menu_book</span>
+            <span class="action-btn-label">Read and study</span>
+          </div>
+          <span class="action-btn-meta">+3 smarts</span>
+        </button>
+
+        <button class="action-btn" id="btnMeditate" type="button">
+          <div class="action-btn-left">
+            <span class="material-symbols-outlined" style="font-size: 18px; color: var(--text-tertiary);">self_improvement</span>
+            <span class="action-btn-label">Meditate</span>
+          </div>
+          <span class="action-btn-meta">+6 happy</span>
+        </button>
+
+        <button class="action-btn" id="btnGrooming" type="button">
+          <div class="action-btn-left">
+            <span class="material-symbols-outlined" style="font-size: 18px; color: var(--text-tertiary);">content_cut</span>
+            <span class="action-btn-label">Styling and salon</span>
+          </div>
+          <span class="action-btn-meta">$250</span>
+        </button>
       </div>
-      <div style="max-height: 460px; overflow-y: auto; padding-right: 4px;">
+
+      <!-- Ledger Section -->
+      <h2 class="section-heading">Ledger</h2>
+      <div>
         ${ledgerHtml}
       </div>
-    </div>
+    </section>
   `;
 }
 
@@ -87,7 +102,7 @@ export function bindProfileEvents(state, rerenderCallback) {
       state.stats.health = Math.min(100, state.stats.health + 4);
       state.stats.looks = Math.min(100, state.stats.looks + 2);
       state.stats.happiness = Math.min(100, state.stats.happiness + 3);
-      showToast("Completed an intense weight training session! (+Health, +Looks)", "success");
+      showToast("Completed an intense weight training session (+Health, +Looks)", "success");
       rerenderCallback();
     });
   }
@@ -97,7 +112,7 @@ export function bindProfileEvents(state, rerenderCallback) {
     btnStudySelf.addEventListener("click", () => {
       state.stats.smarts = Math.min(100, state.stats.smarts + 3);
       state.stats.happiness = Math.max(10, state.stats.happiness - 1);
-      showToast("Studied deep science and finance papers. (+Smarts)", "success");
+      showToast("Studied deep science and finance papers (+Smarts)", "success");
       rerenderCallback();
     });
   }
@@ -107,7 +122,7 @@ export function bindProfileEvents(state, rerenderCallback) {
     btnMeditate.addEventListener("click", () => {
       state.stats.happiness = Math.min(100, state.stats.happiness + 6);
       state.stats.health = Math.min(100, state.stats.health + 2);
-      showToast("Mindfulness meditation session completed. (+Happiness)", "success");
+      showToast("Mindfulness meditation session completed (+Happiness)", "success");
       rerenderCallback();
     });
   }
@@ -116,14 +131,14 @@ export function bindProfileEvents(state, rerenderCallback) {
   if (btnGrooming) {
     btnGrooming.addEventListener("click", () => {
       if (state.finances.cashUSD < 250) {
-        showToast("Insufficient cash for luxury salon visit ($250).", "error");
+        showToast("Insufficient cash for styling salon ($250)", "error");
         return;
       }
       state.finances.cashUSD -= 250;
       state.stats.looks = Math.min(100, state.stats.looks + 5);
       state.stats.happiness = Math.min(100, state.stats.happiness + 4);
       calculateNetWorth(state);
-      showToast("Luxury styling session complete! (+5 Looks)", "success");
+      showToast("Styling session complete (+5 Looks)", "success");
       rerenderCallback();
     });
   }

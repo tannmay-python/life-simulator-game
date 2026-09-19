@@ -3560,7 +3560,7 @@ const BUSINESS_CATALOG = [
     const c = COUNTRIES[G.char.currentCountry] || COUNTRIES.india;
 
     const nameEl = document.getElementById("headerName");
-    if (nameEl) nameEl.innerHTML = `${G.char.firstName} ${G.char.lastName} <span style="font-size: 14px;">${c.flag}</span>`;
+    if (nameEl) nameEl.innerHTML = `${G.char.firstName} ${G.char.lastName} <span style="font-size: 13px; color: var(--text-tertiary); margin-left: 4px;">· ${c.name}</span>`;
 
     const subEl = document.getElementById("headerSubtitle");
     if (subEl) {
@@ -3582,13 +3582,16 @@ const BUSINESS_CATALOG = [
       } else if (G.biz.length > 0) {
         role = `Founder & CEO (${G.biz[0].name})`;
       }
-      subEl.innerText = `Age ${G.char.age} • Gen ${G.char.generation} • ${role}`;
+      subEl.innerText = `Age ${G.char.age} · Gen ${G.char.generation} · ${role}`;
     }
+
+    const nextAgeEl = document.getElementById("ageUpNext");
+    if (nextAgeEl) nextAgeEl.innerText = `Age ${G.char.age + 1}`;
 
     const nwEl = document.getElementById("headerNetWorth");
     if (nwEl) nwEl.innerText = `$${G.fin.netWorth.toLocaleString()}`;
 
-    // Update 5 thick vitality progress bars
+    // Update 5 vitality progress bars
     setStatBar("statHealth", G.stats.health);
     setStatBar("statHappiness", G.stats.happiness);
     setStatBar("statSmarts", G.stats.smarts);
@@ -3625,23 +3628,22 @@ const BUSINESS_CATALOG = [
   function toast(msg, type = "info") {
     const box = document.getElementById("toastContainer");
     if (!box) return;
+    const cleanMsg = (msg || "")
+      .replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '')
+      .replace(/[!！]+$/, '')
+      .trim();
     const t = document.createElement("div");
     t.className = "toast";
-    let icon = type === "celebrate" ? "🎉" : (type === "error" ? "⚠️" : "ℹ️");
-    t.innerHTML = `<span>${icon}</span><span>${msg}</span>`;
+    t.innerHTML = `<span>${cleanMsg}</span>`;
     box.appendChild(t);
     setTimeout(() => {
       t.style.opacity = "0";
-      t.style.transform = "translateY(-6px)";
-      t.style.transition = "all 0.25s ease";
+      t.style.transform = "translateY(-4px)";
+      t.style.transition = "all 0.2s ease";
       setTimeout(() => {
-        if (t && t.parentNode) {
-          t.parentNode.removeChild(t);
-        } else if (t && typeof t.remove === "function") {
-          t.remove();
-        }
-      }, 250);
-    }, 3200);
+        if (t && t.parentNode) t.parentNode.removeChild(t);
+      }, 200);
+    }, 3000);
   }
 
   // Energy & Action Limit Consumption Helper
@@ -3653,11 +3655,11 @@ const BUSINESS_CATALOG = [
       G.yearActions.actionsDone[actionKey] = 0;
     }
     if (G.yearActions.actionsDone[actionKey] >= maxPerYear) {
-      toast("You already did this for the year! Click 'Age Up' to advance.", "error");
+      toast("Annual limit reached for this activity. Age up to advance.", "error");
       return false;
     }
     if (G.stats.energy < cost) {
-      toast(`Not enough energy (${G.stats.energy}% available, requires ${cost}%). Age up to rest!`, "error");
+      toast(`Insufficient energy (${G.stats.energy}% available, ${cost}% required). Age up to recover.`, "error");
       return false;
     }
     G.stats.energy -= cost;
@@ -3674,7 +3676,7 @@ const BUSINESS_CATALOG = [
       { id: "community_play", name: "Community Playgroup", costUSD: 0, happinessGain: 8, desc: "Neighborhood friends, social bonding and outdoor games." }
     ];
 
-    modal("🎨 Choose Early Preschool & Daycare (Age 3)", `
+    modal("Early Preschool & Daycare (Age 3)", `
       <p style="font-size: 11px; color: var(--text-secondary); margin-bottom: 10px;">
         Your parents are enrolling you in your very first early childhood education program.
       </p>
@@ -3712,13 +3714,13 @@ const BUSINESS_CATALOG = [
 
   function showHobbyModal() {
     const hobbies = [
-      { id: "coding", name: "🤖 Robotics & Early Scratch Coding", boost: "smarts", gain: 8, desc: "Build logic, algorithmic thinking and computer literacy." },
-      { id: "chess", name: "♟️ Competitive Chess Training", boost: "smarts", gain: 8, desc: "Tactical foresight, analytical problem solving and patience." },
-      { id: "swimming", name: "🏊 Junior Swimming & Athletics", boost: "health", gain: 10, desc: "Physical endurance, cardio stamina and athletic discipline." },
-      { id: "piano", name: "🎹 Classical Piano & Music", boost: "looks", gain: 6, happyGain: 6, desc: "Creative expression, rhythm and stage presence." }
+      { id: "coding", name: "Robotics & Early Programming", boost: "smarts", gain: 8, desc: "Build logic, algorithmic thinking and computer literacy." },
+      { id: "chess", name: "Competitive Chess Training", boost: "smarts", gain: 8, desc: "Tactical foresight, analytical problem solving and patience." },
+      { id: "swimming", name: "Junior Swimming & Athletics", boost: "health", gain: 10, desc: "Physical endurance, cardio stamina and athletic discipline." },
+      { id: "piano", name: "Classical Piano & Music", boost: "looks", gain: 6, happyGain: 6, desc: "Creative expression, rhythm and stage presence." }
     ];
 
-    modal("🎒 Choose Childhood Passion / Hobby (Age 7)", `
+    modal("Childhood Passion & Extracurriculars (Age 7)", `
       <p style="font-size: 11px; color: var(--text-secondary); margin-bottom: 10px;">
         You are in Grade 2 of Primary School! Your parents encourage you to dedicate your afternoons to a focused extracurricular passion.
       </p>
@@ -3756,7 +3758,7 @@ const BUSINESS_CATALOG = [
   }
 
   function showStreamSelectionModal() {
-    modal(`🎓 Class 10 Boards Result: ${G.childhood.class10Score}%! Choose Senior Secondary Stream (Age 16)`, `
+    modal(`Class 10 Boards Result (${G.childhood.class10Score}%): Select Senior Secondary Stream`, `
       <p style="font-size: 11px; color: var(--text-secondary); margin-bottom: 10px;">
         Outstanding performance on your Class 10 Board Examinations! You must now select your Senior Secondary (Class 11 & 12) academic stream. This choice dictates your future competitive entrance exams and college eligibility!
       </p>
@@ -3764,7 +3766,7 @@ const BUSINESS_CATALOG = [
         <div class="list-row" style="flex-direction: column; align-items: flex-start; gap: 4px;">
           <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
             <div>
-              <h4 style="font-size: 12px;">⚛️ Science PCM (Physics, Chemistry, Math)</h4>
+              <h4 style="font-size: 12px;">Science PCM (Physics, Chemistry, Math)</h4>
               <span class="pill-badge blue" style="font-size: 8px;">Prerequisite for JEE Main & Advanced</span>
             </div>
             <button class="btn btn-sm btn-primary btn-choose-stream-modal" data-stream="pcm">Select PCM</button>
@@ -3775,7 +3777,7 @@ const BUSINESS_CATALOG = [
         <div class="list-row" style="flex-direction: column; align-items: flex-start; gap: 4px;">
           <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
             <div>
-              <h4 style="font-size: 12px;">🧬 Science PCB (Physics, Chemistry, Biology)</h4>
+              <h4 style="font-size: 12px;">Science PCB (Physics, Chemistry, Biology)</h4>
               <span class="pill-badge emerald" style="font-size: 8px;">Prerequisite for NEET UG</span>
             </div>
             <button class="btn btn-sm btn-primary btn-choose-stream-modal" data-stream="pcb">Select PCB</button>
@@ -3786,7 +3788,7 @@ const BUSINESS_CATALOG = [
         <div class="list-row" style="flex-direction: column; align-items: flex-start; gap: 4px;">
           <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
             <div>
-              <h4 style="font-size: 12px;">📊 Commerce & Mathematics</h4>
+              <h4 style="font-size: 12px;">Commerce & Mathematics</h4>
               <span class="pill-badge amber" style="font-size: 8px;">For SRCC, CA & Finance</span>
             </div>
             <button class="btn btn-sm btn-primary btn-choose-stream-modal" data-stream="commerce">Select Commerce</button>
@@ -3797,7 +3799,7 @@ const BUSINESS_CATALOG = [
         <div class="list-row" style="flex-direction: column; align-items: flex-start; gap: 4px;">
           <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
             <div>
-              <h4 style="font-size: 12px;">🏛️ Humanities / Arts & Law</h4>
+              <h4 style="font-size: 12px;">Humanities / Arts & Law</h4>
               <span class="pill-badge purple" style="font-size: 8px;">For NLSIU & Pre-Law</span>
             </div>
             <button class="btn btn-sm btn-primary btn-choose-stream-modal" data-stream="arts">Select Arts</button>
@@ -3834,7 +3836,7 @@ const BUSINESS_CATALOG = [
       targetExam = "CLAT / Pre-Law";
     }
 
-    modal("🎯 Class 11-12 Coaching Academy Enrollment (Age 17)", `
+    modal("Competitive Coaching Academy Enrollment (Age 17)", `
       <p style="font-size: 11px; color: var(--text-secondary); margin-bottom: 10px;">
         To compete against 1.5 Million students in ${targetExam}, national coaching academies offer intensive problem-solving regimens.
       </p>
@@ -3909,7 +3911,7 @@ const BUSINESS_CATALOG = [
     const mainsScore = Math.round(620 + (G.stats.smarts / 100) * 230 + (Math.random() * 40));
     const mainsCutoff = 745;
 
-    modal(`🏛️ UPSC Civil Services — Stage 1 Cleared!`, `
+    modal(`UPSC Civil Services — Stage 1 Cleared`, `
       <div style="text-align: center; padding: 10px;">
         <div style="font-size: 38px; margin-bottom: 8px;">🎉</div>
         <h4 style="font-size: 15px; margin-bottom: 6px;">CLEARED UPSC PRELIMS!</h4>
@@ -4022,7 +4024,7 @@ const BUSINESS_CATALOG = [
       <p style="font-size: 11px; color: var(--text-secondary); margin-top: 10px;">You have no surviving children to inherit the estate.</p>
     `;
 
-    modal(`🕊️ Life Completed: In Memoriam (Age ${G.char.age})`, `
+    modal(`In Memoriam (Age ${G.char.age})`, `
       <div style="text-align: center; padding: 8px;">
         <div style="font-size: 36px; margin-bottom: 8px;">👑</div>
         <h4 style="font-size: 16px; margin-bottom: 4px;">${G.char.firstName} ${G.char.lastName}</h4>
@@ -4522,180 +4524,267 @@ const BUSINESS_CATALOG = [
   // TAB 1: LIFE / PROFILE & CHRONICLES
   function renderProfileTab(vc) {
     const c = COUNTRIES[G.char.currentCountry] || COUNTRIES.india;
+    const bCountry = COUNTRIES[G.char.birthCountry] || COUNTRIES.india;
     const age = G.char.age;
-    const actionsDone = G.yearActions.actionsDone || {};
+    const actionsDone = G.yearActions?.actionsDone || {};
 
-    const ledgerHtml = G.ledger.map(item => `
-      <div class="ledger-item">
-        <div class="ledger-headline">
-          <span>Age ${item.age}: ${item.headline}</span>
-          ${item.cashDelta !== undefined ? `<span style="font-size: 11px; color: ${item.cashDelta >= 0 ? 'var(--accent-emerald)' : 'var(--accent-rose)'};">${item.cashDelta >= 0 ? '+' : ''}$${Math.round(item.cashDelta).toLocaleString()}</span>` : ''}
+    const ledgerHtml = G.ledger.slice().reverse().map(item => {
+      const cleanHeadline = (item.headline || "").replace(/[\u{1F300}-\u{1F9FF}]/gu, '').replace(/[!！]+$/, '').trim();
+      return `
+        <div class="ledger-row">
+          <div class="ledger-age">Age ${item.age}</div>
+          <div class="ledger-body">
+            <div class="ledger-headline">${cleanHeadline}</div>
+            ${(item.logs || (item.text ? [item.text] : [])).map(log => {
+              const cleanLog = log.replace(/^[•·\s]+/, '').replace(/[\u{1F300}-\u{1F9FF}]/gu, '').replace(/[!！]+$/, '').trim();
+              return `<div class="ledger-logs">${cleanLog}</div>`;
+            }).join("")}
+          </div>
+          <div class="ledger-cash">
+            ${item.cashDelta !== undefined ? `${item.cashDelta >= 0 ? '+' : ''}$${Math.round(item.cashDelta).toLocaleString()}` : (item.cashChangeUSD ? `${item.cashChangeUSD >= 0 ? '+' : ''}$${Math.round(item.cashChangeUSD).toLocaleString()}` : '')}
+          </div>
         </div>
-        ${item.logs ? item.logs.map(l => `<p class="ledger-log-text">• ${l}</p>`).join("") : `<p class="ledger-log-text">${item.text}</p>`}
-      </div>
-    `).join("");
+      `;
+    }).join("");
 
-    // Generate Stage-Appropriate Life Actions
-    let stageTitle = "🌟 Adulthood Actions";
+    // Stage-Appropriate Life Actions
+    let stageTitle = "Adulthood actions";
     let actionsHtml = "";
 
     if (age <= 2) {
-      stageTitle = "🍼 Infancy Actions (Home & Sensory Development)";
-      const napDone = actionsDone["nap"] >= 1;
+      stageTitle = "Infancy actions";
+      const napDone = (actionsDone["nap"] || 0) >= 1;
       actionsHtml = `
-        <button class="btn btn-sm" id="btnActCuddle">
-          <span>🍼 Cuddle Parents</span>
-          <span class="pill-badge purple" style="font-size: 8px;">⚡20 (${actionsDone["cuddle"] || 0}/2)</span>
+        <button class="action-btn" id="btnActCuddle" type="button">
+          <div class="action-btn-left">
+            <span class="material-symbols-outlined" style="font-size: 18px; color: var(--text-tertiary);">favorite</span>
+            <span class="action-btn-label">Cuddle parents</span>
+          </div>
+          <span class="action-btn-meta">⚡ 20 · ${actionsDone["cuddle"] || 0}/2</span>
         </button>
-        <button class="btn btn-sm" id="btnActRattle">
-          <span>🧸 Play Rattles</span>
-          <span class="pill-badge purple" style="font-size: 8px;">⚡20 (${actionsDone["rattle"] || 0}/2)</span>
+        <button class="action-btn" id="btnActRattle" type="button">
+          <div class="action-btn-left">
+            <span class="material-symbols-outlined" style="font-size: 18px; color: var(--text-tertiary);">toys</span>
+            <span class="action-btn-label">Play rattles</span>
+          </div>
+          <span class="action-btn-meta">⚡ 20 · ${actionsDone["rattle"] || 0}/2</span>
         </button>
-        <button class="btn btn-sm" id="btnActCrawl">
-          <span>👣 Learn to Walk</span>
-          <span class="pill-badge purple" style="font-size: 8px;">⚡25 (${actionsDone["crawl"] || 0}/2)</span>
+        <button class="action-btn" id="btnActCrawl" type="button">
+          <div class="action-btn-left">
+            <span class="material-symbols-outlined" style="font-size: 18px; color: var(--text-tertiary);">directions_walk</span>
+            <span class="action-btn-label">Learn to walk</span>
+          </div>
+          <span class="action-btn-meta">⚡ 25 · ${actionsDone["crawl"] || 0}/2</span>
         </button>
-        <button class="btn btn-sm" id="btnActNap" ${napDone ? 'disabled' : ''}>
-          <span>😴 Afternoon Nap</span>
-          <span class="pill-badge emerald" style="font-size: 8px;">+30 ⚡ (${napDone ? 'Done' : '1/yr'})</span>
+        <button class="action-btn" id="btnActNap" type="button" ${napDone ? 'disabled' : ''}>
+          <div class="action-btn-left">
+            <span class="material-symbols-outlined" style="font-size: 18px; color: var(--text-tertiary);">bedtime</span>
+            <span class="action-btn-label">Afternoon nap</span>
+          </div>
+          <span class="action-btn-meta">+30 ⚡ · ${napDone ? 'Done' : '1/yr'}</span>
         </button>
       `;
     } else if (age >= 3 && age <= 5) {
-      stageTitle = "🎨 Toddler & Preschool Activities";
+      stageTitle = "Toddler & preschool activities";
       actionsHtml = `
-        <button class="btn btn-sm" id="btnActPaint">
-          <span>🎨 Finger Paint</span>
-          <span class="pill-badge purple" style="font-size: 8px;">⚡25 (${actionsDone["paint"] || 0}/2)</span>
+        <button class="action-btn" id="btnActPaint" type="button">
+          <div class="action-btn-left">
+            <span class="material-symbols-outlined" style="font-size: 18px; color: var(--text-tertiary);">palette</span>
+            <span class="action-btn-label">Finger paint</span>
+          </div>
+          <span class="action-btn-meta">⚡ 25 · ${actionsDone["paint"] || 0}/2</span>
         </button>
-        <button class="btn btn-sm" id="btnActPhonics">
-          <span>🔤 Phonics & ABCs</span>
-          <span class="pill-badge purple" style="font-size: 8px;">⚡25 (${actionsDone["phonics"] || 0}/2)</span>
+        <button class="action-btn" id="btnActPhonics" type="button">
+          <div class="action-btn-left">
+            <span class="material-symbols-outlined" style="font-size: 18px; color: var(--text-tertiary);">spellcheck</span>
+            <span class="action-btn-label">Phonics and ABCs</span>
+          </div>
+          <span class="action-btn-meta">⚡ 25 · ${actionsDone["phonics"] || 0}/2</span>
         </button>
-        <button class="btn btn-sm" id="btnActPlayground">
-          <span>🛝 Playground Fun</span>
-          <span class="pill-badge purple" style="font-size: 8px;">⚡25 (${actionsDone["playground"] || 0}/2)</span>
+        <button class="action-btn" id="btnActPlayground" type="button">
+          <div class="action-btn-left">
+            <span class="material-symbols-outlined" style="font-size: 18px; color: var(--text-tertiary);">park</span>
+            <span class="action-btn-label">Playground fun</span>
+          </div>
+          <span class="action-btn-meta">⚡ 25 · ${actionsDone["playground"] || 0}/2</span>
         </button>
-        <button class="btn btn-sm" id="btnActPuzzles">
-          <span>🧩 Shape Blocks</span>
-          <span class="pill-badge purple" style="font-size: 8px;">⚡25 (${actionsDone["puzzles"] || 0}/2)</span>
+        <button class="action-btn" id="btnActPuzzles" type="button">
+          <div class="action-btn-left">
+            <span class="material-symbols-outlined" style="font-size: 18px; color: var(--text-tertiary);">extension</span>
+            <span class="action-btn-label">Shape blocks</span>
+          </div>
+          <span class="action-btn-meta">⚡ 25 · ${actionsDone["puzzles"] || 0}/2</span>
         </button>
       `;
     } else if (age >= 6 && age <= 10) {
-      stageTitle = "🎒 Primary School Activities (Grades 1-5)";
-      const moneyDone = actionsDone["pocket_money"] >= 1;
+      stageTitle = "Primary school activities";
+      const moneyDone = (actionsDone["pocket_money"] || 0) >= 1;
       actionsHtml = `
-        <button class="btn btn-sm" id="btnActSoccer">
-          <span>⚽ Play Tag & Soccer</span>
-          <span class="pill-badge purple" style="font-size: 8px;">⚡25 (${actionsDone["soccer"] || 0}/2)</span>
+        <button class="action-btn" id="btnActSoccer" type="button">
+          <div class="action-btn-left">
+            <span class="material-symbols-outlined" style="font-size: 18px; color: var(--text-tertiary);">sports_soccer</span>
+            <span class="action-btn-label">Play tag and soccer</span>
+          </div>
+          <span class="action-btn-meta">⚡ 25 · ${actionsDone["soccer"] || 0}/2</span>
         </button>
-        <button class="btn btn-sm" id="btnActBicycle">
-          <span>🚲 Ride Bicycle</span>
-          <span class="pill-badge purple" style="font-size: 8px;">⚡25 (${actionsDone["bicycle"] || 0}/2)</span>
+        <button class="action-btn" id="btnActBicycle" type="button">
+          <div class="action-btn-left">
+            <span class="material-symbols-outlined" style="font-size: 18px; color: var(--text-tertiary);">pedal_bike</span>
+            <span class="action-btn-label">Ride bicycle</span>
+          </div>
+          <span class="action-btn-meta">⚡ 25 · ${actionsDone["bicycle"] || 0}/2</span>
         </button>
-        <button class="btn btn-sm" id="btnActBooks">
-          <span>📖 Science Books</span>
-          <span class="pill-badge purple" style="font-size: 8px;">⚡25 (${actionsDone["books"] || 0}/2)</span>
+        <button class="action-btn" id="btnActBooks" type="button">
+          <div class="action-btn-left">
+            <span class="material-symbols-outlined" style="font-size: 18px; color: var(--text-tertiary);">menu_book</span>
+            <span class="action-btn-label">Science books</span>
+          </div>
+          <span class="action-btn-meta">⚡ 25 · ${actionsDone["books"] || 0}/2</span>
         </button>
-        <button class="btn btn-sm" id="btnActPocketMoney" ${moneyDone ? 'disabled' : ''}>
-          <span>💰 Ask Pocket Money</span>
-          <span class="pill-badge emerald" style="font-size: 8px;">⚡15 (${moneyDone ? 'Done' : '1/yr'})</span>
+        <button class="action-btn" id="btnActPocketMoney" type="button" ${moneyDone ? 'disabled' : ''}>
+          <div class="action-btn-left">
+            <span class="material-symbols-outlined" style="font-size: 18px; color: var(--text-tertiary);">payments</span>
+            <span class="action-btn-label">Ask pocket money</span>
+          </div>
+          <span class="action-btn-meta">⚡ 15 · ${moneyDone ? 'Done' : '1/yr'}</span>
         </button>
       `;
     } else if (age >= 11 && age <= 14) {
-      stageTitle = "🏫 Middle School Activities (Grades 6-8)";
-      const choresDone = actionsDone["chores"] >= 1;
+      stageTitle = "Middle school activities";
+      const choresDone = (actionsDone["chores"] || 0) >= 1;
       actionsHtml = `
-        <button class="btn btn-sm" id="btnActTermExam">
-          <span>📚 Study for Exams</span>
-          <span class="pill-badge purple" style="font-size: 8px;">⚡25 (${actionsDone["term_exam"] || 0}/2)</span>
+        <button class="action-btn" id="btnActTermExam" type="button">
+          <div class="action-btn-left">
+            <span class="material-symbols-outlined" style="font-size: 18px; color: var(--text-tertiary);">school</span>
+            <span class="action-btn-label">Study for exams</span>
+          </div>
+          <span class="action-btn-meta">⚡ 25 · ${actionsDone["term_exam"] || 0}/2</span>
         </button>
-        <button class="btn btn-sm" id="btnActChessClub">
-          <span>♟️ School Chess Club</span>
-          <span class="pill-badge purple" style="font-size: 8px;">⚡25 (${actionsDone["chess_club"] || 0}/2)</span>
+        <button class="action-btn" id="btnActChessClub" type="button">
+          <div class="action-btn-left">
+            <span class="material-symbols-outlined" style="font-size: 18px; color: var(--text-tertiary);">emoji_events</span>
+            <span class="action-btn-label">School chess club</span>
+          </div>
+          <span class="action-btn-meta">⚡ 25 · ${actionsDone["chess_club"] || 0}/2</span>
         </button>
-        <button class="btn btn-sm" id="btnActGaming">
-          <span>🎮 Gaming Squad</span>
-          <span class="pill-badge purple" style="font-size: 8px;">⚡25 (${actionsDone["gaming"] || 0}/2)</span>
+        <button class="action-btn" id="btnActGaming" type="button">
+          <div class="action-btn-left">
+            <span class="material-symbols-outlined" style="font-size: 18px; color: var(--text-tertiary);">sports_esports</span>
+            <span class="action-btn-label">Gaming squad</span>
+          </div>
+          <span class="action-btn-meta">⚡ 25 · ${actionsDone["gaming"] || 0}/2</span>
         </button>
-        <button class="btn btn-sm" id="btnActChores" ${choresDone ? 'disabled' : ''}>
-          <span>🧹 Household Chores</span>
-          <span class="pill-badge emerald" style="font-size: 8px;">⚡25 (${choresDone ? 'Done' : '1/yr'})</span>
+        <button class="action-btn" id="btnActChores" type="button" ${choresDone ? 'disabled' : ''}>
+          <div class="action-btn-left">
+            <span class="material-symbols-outlined" style="font-size: 18px; color: var(--text-tertiary);">cleaning_services</span>
+            <span class="action-btn-label">Household chores</span>
+          </div>
+          <span class="action-btn-meta">⚡ 25 · ${choresDone ? 'Done' : '1/yr'}</span>
         </button>
       `;
     } else if (age >= 15 && age <= 17) {
-      stageTitle = "🎓 High School Activities (Boards Prep)";
-      const hustleDone = actionsDone["side_hustle"] >= 1;
+      stageTitle = "High school activities";
+      const hustleDone = (actionsDone["side_hustle"] || 0) >= 1;
       actionsHtml = `
-        <button class="btn btn-sm" id="btnActBoardPrep">
-          <span>📖 Intensive Study</span>
-          <span class="pill-badge purple" style="font-size: 8px;">⚡25 (${actionsDone["board_prep"] || 0}/2)</span>
+        <button class="action-btn" id="btnActBoardPrep" type="button">
+          <div class="action-btn-left">
+            <span class="material-symbols-outlined" style="font-size: 18px; color: var(--text-tertiary);">history_edu</span>
+            <span class="action-btn-label">Intensive study</span>
+          </div>
+          <span class="action-btn-meta">⚡ 25 · ${actionsDone["board_prep"] || 0}/2</span>
         </button>
-        <button class="btn btn-sm" id="btnActTrack">
-          <span>🏃 Varsity Track</span>
-          <span class="pill-badge purple" style="font-size: 8px;">⚡25 (${actionsDone["track"] || 0}/2)</span>
+        <button class="action-btn" id="btnActTrack" type="button">
+          <div class="action-btn-left">
+            <span class="material-symbols-outlined" style="font-size: 18px; color: var(--text-tertiary);">directions_run</span>
+            <span class="action-btn-label">Varsity track</span>
+          </div>
+          <span class="action-btn-meta">⚡ 25 · ${actionsDone["track"] || 0}/2</span>
         </button>
-        <button class="btn btn-sm" id="btnActSquad">
-          <span>☕ Squad Hangout</span>
-          <span class="pill-badge purple" style="font-size: 8px;">⚡20 (${actionsDone["squad"] || 0}/2)</span>
+        <button class="action-btn" id="btnActSquad" type="button">
+          <div class="action-btn-left">
+            <span class="material-symbols-outlined" style="font-size: 18px; color: var(--text-tertiary);">coffee</span>
+            <span class="action-btn-label">Squad hangout</span>
+          </div>
+          <span class="action-btn-meta">⚡ 20 · ${actionsDone["squad"] || 0}/2</span>
         </button>
-        <button class="btn btn-sm" id="btnActHustle" ${hustleDone ? 'disabled' : ''}>
-          <span>💼 Teen Hustle</span>
-          <span class="pill-badge emerald" style="font-size: 8px;">⚡30 (${hustleDone ? 'Done' : '1/yr'})</span>
+        <button class="action-btn" id="btnActHustle" type="button" ${hustleDone ? 'disabled' : ''}>
+          <div class="action-btn-left">
+            <span class="material-symbols-outlined" style="font-size: 18px; color: var(--text-tertiary);">work</span>
+            <span class="action-btn-label">Teen hustle</span>
+          </div>
+          <span class="action-btn-meta">⚡ 30 · ${hustleDone ? 'Done' : '1/yr'}</span>
         </button>
       `;
     } else {
       // Adulthood (18+)
-      stageTitle = "💪 Adult Wellness, Academics & High Society";
+      stageTitle = "Adult wellness and activities";
       actionsHtml = `
-        <button class="btn btn-sm" id="btnGym">
-          <span>💪 Gym Workout</span>
-          <span class="pill-badge purple" style="font-size: 8px;">⚡25 (${actionsDone["gym"] || 0}/2)</span>
+        <button class="action-btn" id="btnGym" type="button">
+          <div class="action-btn-left">
+            <span class="material-symbols-outlined" style="font-size: 18px; color: var(--text-tertiary);">fitness_center</span>
+            <span class="action-btn-label">Gym and fitness</span>
+          </div>
+          <span class="action-btn-meta">⚡ 25 · ${actionsDone["gym"] || 0}/2</span>
         </button>
-        <button class="btn btn-sm" id="btnStudy">
-          <span>📚 Advanced Research</span>
-          <span class="pill-badge purple" style="font-size: 8px;">⚡25 (${actionsDone["study"] || 0}/2)</span>
+        <button class="action-btn" id="btnStudy" type="button">
+          <div class="action-btn-left">
+            <span class="material-symbols-outlined" style="font-size: 18px; color: var(--text-tertiary);">psychology</span>
+            <span class="action-btn-label">Advanced research</span>
+          </div>
+          <span class="action-btn-meta">⚡ 25 · ${actionsDone["study"] || 0}/2</span>
         </button>
-        <button class="btn btn-sm" id="btnMeditate">
-          <span>🧘 Mindfulness</span>
-          <span class="pill-badge purple" style="font-size: 8px;">⚡20 (${actionsDone["meditate"] || 0}/2)</span>
+        <button class="action-btn" id="btnMeditate" type="button">
+          <div class="action-btn-left">
+            <span class="material-symbols-outlined" style="font-size: 18px; color: var(--text-tertiary);">self_improvement</span>
+            <span class="action-btn-label">Mindfulness</span>
+          </div>
+          <span class="action-btn-meta">⚡ 20 · ${actionsDone["meditate"] || 0}/2</span>
         </button>
-        <button class="btn btn-sm" id="btnSalon">
-          <span>✨ Salon & Style ($200)</span>
-          <span class="pill-badge purple" style="font-size: 8px;">⚡20 (${actionsDone["salon"] || 0}/2)</span>
+        <button class="action-btn" id="btnSalon" type="button">
+          <div class="action-btn-left">
+            <span class="material-symbols-outlined" style="font-size: 18px; color: var(--text-tertiary);">content_cut</span>
+            <span class="action-btn-label">Styling salon</span>
+          </div>
+          <span class="action-btn-meta">$200 · ⚡ 20 · ${actionsDone["salon"] || 0}/2</span>
         </button>
       `;
     }
 
     vc.innerHTML = `
-      <div class="card">
-        <div class="card-title-row">
-          <div class="card-title"><span>👤</span> Identity & Heritage</div>
-          <span class="pill-badge blue">Gen ${G.char.generation}</span>
-        </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 11px; margin-bottom: 12px;">
-          <div><span style="color: var(--text-muted);">Birth City:</span> <strong>${G.char.city}, ${c.name} ${c.flag}</strong></div>
-          <div><span style="color: var(--text-muted);">Family Tier:</span> <strong>${G.char.familyWealth.replace("_", " ").toUpperCase()}</strong></div>
-          <div><span style="color: var(--text-muted);">Credit Score:</span> <strong style="color: var(--accent-emerald);">${G.stats.creditScore ? G.stats.creditScore + ' (FICO)' : 'Age 18+ Locked'}</strong></div>
-          <div><span style="color: var(--text-muted);">Prestige:</span> <strong style="color: var(--accent-purple);">${G.stats.prestige}/100</strong></div>
+      <section style="padding-top: 8px;">
+        <!-- Identity Section -->
+        <h2 class="section-heading first">Identity</h2>
+        <div class="detail-grid">
+          <div>
+            <div class="detail-label">Birth city</div>
+            <div class="detail-val">${G.char.city}, ${c.name}</div>
+          </div>
+          <div>
+            <div class="detail-label">Family tier</div>
+            <div class="detail-val" style="text-transform: capitalize;">${G.char.familyWealth.replace("_", " ")}</div>
+          </div>
+          <div>
+            <div class="detail-label">Credit score</div>
+            <div class="detail-val-mono">${G.stats.creditScore ? G.stats.creditScore + ' FICO' : '—'}</div>
+          </div>
+          <div>
+            <div class="detail-label">Societal standing</div>
+            <div class="detail-val-mono">${G.stats.prestige || 10}<span style="color: var(--text-tertiary);">/100</span></div>
+          </div>
         </div>
 
-        <div style="font-size: 11px; font-weight: 700; margin-bottom: 6px; color: var(--text-secondary);">
-          ${stageTitle}
-        </div>
-        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px;">
+        <!-- Actions Section -->
+        <h2 class="section-heading">${stageTitle}</h2>
+        <div class="actions-grid">
           ${actionsHtml}
         </div>
-      </div>
 
-      <div class="card">
-        <div class="card-title-row">
-          <div class="card-title"><span>📜</span> Life Chronicles & Ledger</div>
-          <span class="pill-badge">${G.ledger.length} Entries</span>
-        </div>
-        <div style="max-height: 440px; overflow-y: auto; padding-right: 4px;">
+        <!-- Ledger Section -->
+        <h2 class="section-heading">Ledger</h2>
+        <div>
           ${ledgerHtml}
         </div>
-      </div>
+      </section>
     `;
 
     // Bind Stage Action Click Handlers
@@ -4704,7 +4793,7 @@ const BUSINESS_CATALOG = [
         if (!consumeEnergy(20, "cuddle", 2)) return;
         G.stats.happiness = Math.min(100, G.stats.happiness + 6);
         G.stats.health = Math.min(100, G.stats.health + 2);
-        toast("Cuddled in parents' warm embrace! (+Happiness, +Health)", "celebrate");
+        toast("Cuddled in parents' warm embrace (+Happiness, +Health)", "celebrate");
         updateHeader();
         renderCurrentTab();
       });
@@ -4712,14 +4801,14 @@ const BUSINESS_CATALOG = [
         if (!consumeEnergy(20, "rattle", 2)) return;
         G.stats.happiness = Math.min(100, G.stats.happiness + 5);
         G.stats.smarts = Math.min(100, G.stats.smarts + 2);
-        toast("Played with musical rattles and wooden blocks! (+Smarts)", "celebrate");
+        toast("Played with musical rattles and wooden blocks (+Smarts)", "celebrate");
         updateHeader();
         renderCurrentTab();
       });
       document.getElementById("btnActCrawl")?.addEventListener("click", () => {
         if (!consumeEnergy(25, "crawl", 2)) return;
         G.stats.health = Math.min(100, G.stats.health + 5);
-        toast("Practiced crawling and standing on toddler legs! (+Health)", "celebrate");
+        toast("Practiced crawling and standing on toddler legs (+Health)", "celebrate");
         updateHeader();
         renderCurrentTab();
       });
@@ -4730,7 +4819,7 @@ const BUSINESS_CATALOG = [
         }
         G.yearActions.actionsDone["nap"] = 1;
         G.stats.energy = Math.min(100, G.stats.energy + 30);
-        toast("Deep peaceful nap restored +30% Energy!", "celebrate");
+        toast("Deep peaceful nap restored +30% Energy", "celebrate");
         updateHeader();
         renderCurrentTab();
       });
@@ -4739,14 +4828,14 @@ const BUSINESS_CATALOG = [
         if (!consumeEnergy(25, "paint", 2)) return;
         G.stats.happiness = Math.min(100, G.stats.happiness + 6);
         G.stats.looks = Math.min(100, G.stats.looks + 2);
-        toast("Made colorful finger paintings! (+Happiness)", "celebrate");
+        toast("Made colorful finger paintings (+Happiness)", "celebrate");
         updateHeader();
         renderCurrentTab();
       });
       document.getElementById("btnActPhonics")?.addEventListener("click", () => {
         if (!consumeEnergy(25, "phonics", 2)) return;
         G.stats.smarts = Math.min(100, G.stats.smarts + 6);
-        toast("Mastered phonics and early alphabet sounds! (+Smarts)", "celebrate");
+        toast("Mastered phonics and early alphabet sounds (+Smarts)", "celebrate");
         updateHeader();
         renderCurrentTab();
       });
@@ -4754,14 +4843,14 @@ const BUSINESS_CATALOG = [
         if (!consumeEnergy(25, "playground", 2)) return;
         G.stats.health = Math.min(100, G.stats.health + 6);
         G.stats.happiness = Math.min(100, G.stats.happiness + 4);
-        toast("Slid down the slide and ran in the sandpit! (+Health, +Happy)", "celebrate");
+        toast("Slid down the slide and ran in the sandpit (+Health, +Happy)", "celebrate");
         updateHeader();
         renderCurrentTab();
       });
       document.getElementById("btnActPuzzles")?.addEventListener("click", () => {
         if (!consumeEnergy(25, "puzzles", 2)) return;
         G.stats.smarts = Math.min(100, G.stats.smarts + 6);
-        toast("Solved 3D geometric shape puzzles! (+Smarts)", "celebrate");
+        toast("Solved 3D geometric shape puzzles (+Smarts)", "celebrate");
         updateHeader();
         renderCurrentTab();
       });
@@ -4770,7 +4859,7 @@ const BUSINESS_CATALOG = [
         if (!consumeEnergy(25, "soccer", 2)) return;
         G.stats.health = Math.min(100, G.stats.health + 6);
         G.stats.happiness = Math.min(100, G.stats.happiness + 4);
-        toast("Scored goals in schoolyard soccer! (+Health, +Happy)", "celebrate");
+        toast("Scored goals in schoolyard soccer (+Health, +Happy)", "celebrate");
         updateHeader();
         renderCurrentTab();
       });
@@ -4778,14 +4867,14 @@ const BUSINESS_CATALOG = [
         if (!consumeEnergy(25, "bicycle", 2)) return;
         G.stats.health = Math.min(100, G.stats.health + 5);
         G.stats.happiness = Math.min(100, G.stats.happiness + 4);
-        toast("Rode your bicycle around the neighborhood! (+Health)", "celebrate");
+        toast("Rode your bicycle around the neighborhood (+Health)", "celebrate");
         updateHeader();
         renderCurrentTab();
       });
       document.getElementById("btnActBooks")?.addEventListener("click", () => {
         if (!consumeEnergy(25, "books", 2)) return;
         G.stats.smarts = Math.min(100, G.stats.smarts + 6);
-        toast("Read illustrated space and dinosaur encyclopedias! (+Smarts)", "celebrate");
+        toast("Read illustrated space and dinosaur encyclopedias (+Smarts)", "celebrate");
         updateHeader();
         renderCurrentTab();
       });
@@ -4794,7 +4883,7 @@ const BUSINESS_CATALOG = [
         let amt = G.char.familyWealth === "billionaire" ? 150 : (G.char.familyWealth === "affluent" ? 60 : 25);
         G.fin.cash += amt;
         G.stats.happiness = Math.min(100, G.stats.happiness + 4);
-        toast(`Parents gave you $${amt} pocket money allowance!`, "celebrate");
+        toast(`Parents gave you $${amt} pocket money allowance`, "celebrate");
         updateHeader();
         renderCurrentTab();
       });
@@ -4802,7 +4891,7 @@ const BUSINESS_CATALOG = [
       document.getElementById("btnActTermExam")?.addEventListener("click", () => {
         if (!consumeEnergy(25, "term_exam", 2)) return;
         G.stats.smarts = Math.min(100, G.stats.smarts + 6);
-        toast("Reviewed algebra and science notes for term exams! (+Smarts)", "celebrate");
+        toast("Reviewed algebra and science notes for term exams (+Smarts)", "celebrate");
         updateHeader();
         renderCurrentTab();
       });
@@ -4810,14 +4899,14 @@ const BUSINESS_CATALOG = [
         if (!consumeEnergy(25, "chess_club", 2)) return;
         G.stats.smarts = Math.min(100, G.stats.smarts + 5);
         G.stats.prestige = Math.min(100, G.stats.prestige + 3);
-        toast("Won middle school chess tournament match! (+Smarts, +Prestige)", "celebrate");
+        toast("Won middle school chess tournament match (+Smarts, +Prestige)", "celebrate");
         updateHeader();
         renderCurrentTab();
       });
       document.getElementById("btnActGaming")?.addEventListener("click", () => {
         if (!consumeEnergy(25, "gaming", 2)) return;
         G.stats.happiness = Math.min(100, G.stats.happiness + 8);
-        toast("Crushed an online multiplayer session with classmates! (+Happiness)", "celebrate");
+        toast("Crushed an online multiplayer session with classmates (+Happiness)", "celebrate");
         updateHeader();
         renderCurrentTab();
       });
@@ -4825,7 +4914,7 @@ const BUSINESS_CATALOG = [
         if (!consumeEnergy(25, "chores", 1)) return;
         let amt = G.char.familyWealth === "billionaire" ? 300 : (G.char.familyWealth === "affluent" ? 120 : 60);
         G.fin.cash += amt;
-        toast(`Completed lawn mowing & chores! Earned $${amt} allowance!`, "celebrate");
+        toast(`Completed household chores and earned $${amt} allowance`, "celebrate");
         updateHeader();
         renderCurrentTab();
       });
@@ -4833,7 +4922,7 @@ const BUSINESS_CATALOG = [
       document.getElementById("btnActBoardPrep")?.addEventListener("click", () => {
         if (!consumeEnergy(25, "board_prep", 2)) return;
         G.stats.smarts = Math.min(100, G.stats.smarts + 7);
-        toast("Solved past 10 years' question papers! (+7 Smarts)", "celebrate");
+        toast("Solved past 10 years' question papers (+7 Smarts)", "celebrate");
         updateHeader();
         renderCurrentTab();
       });
@@ -4841,14 +4930,14 @@ const BUSINESS_CATALOG = [
         if (!consumeEnergy(25, "track", 2)) return;
         G.stats.health = Math.min(100, G.stats.health + 6);
         G.stats.looks = Math.min(100, G.stats.looks + 3);
-        toast("Ran varsity track & conditioning drills! (+Health, +Looks)", "celebrate");
+        toast("Ran varsity track and conditioning drills (+Health, +Looks)", "celebrate");
         updateHeader();
         renderCurrentTab();
       });
       document.getElementById("btnActSquad")?.addEventListener("click", () => {
         if (!consumeEnergy(20, "squad", 2)) return;
         G.stats.happiness = Math.min(100, G.stats.happiness + 7);
-        toast("Hung out at the local cafe with your high school squad! (+Happiness)", "celebrate");
+        toast("Hung out at the local cafe with your high school squad (+Happiness)", "celebrate");
         updateHeader();
         renderCurrentTab();
       });
@@ -4856,7 +4945,7 @@ const BUSINESS_CATALOG = [
         if (!consumeEnergy(30, "side_hustle", 1)) return;
         let amt = 400 + Math.round(G.stats.smarts * 4);
         G.fin.cash += amt;
-        toast(`Worked high school tutoring & coding side gig! Earned $${amt}!`, "celebrate");
+        toast(`Worked tutoring and coding side gig, earned $${amt}`, "celebrate");
         updateHeader();
         renderCurrentTab();
       });
@@ -4866,21 +4955,21 @@ const BUSINESS_CATALOG = [
         if (!consumeEnergy(25, "gym", 2)) return;
         G.stats.health = Math.min(100, G.stats.health + 5);
         G.stats.looks = Math.min(100, G.stats.looks + 3);
-        toast("Crushed high-intensity weight training! (+5 Health, +3 Looks)", "celebrate");
+        toast("Completed weight training session (+5 Health, +3 Looks)", "celebrate");
         updateHeader();
         renderCurrentTab();
       });
       document.getElementById("btnStudy")?.addEventListener("click", () => {
         if (!consumeEnergy(25, "study", 2)) return;
         G.stats.smarts = Math.min(100, G.stats.smarts + 5);
-        toast("Deep research into advanced mathematics & markets! (+5 Smarts)", "celebrate");
+        toast("Conducted deep research into mathematics and markets (+5 Smarts)", "celebrate");
         updateHeader();
         renderCurrentTab();
       });
       document.getElementById("btnMeditate")?.addEventListener("click", () => {
         if (!consumeEnergy(20, "meditate", 2)) return;
         G.stats.happiness = Math.min(100, G.stats.happiness + 7);
-        toast("Mindfulness meditation cleared mental fog! (+7 Happiness)", "celebrate");
+        toast("Mindfulness meditation cleared mental fog (+7 Happiness)", "celebrate");
         updateHeader();
         renderCurrentTab();
       });
@@ -4890,7 +4979,7 @@ const BUSINESS_CATALOG = [
         G.fin.cash -= 200;
         G.stats.looks = Math.min(100, G.stats.looks + 6);
         G.stats.happiness = Math.min(100, G.stats.happiness + 4);
-        toast("High-end salon styling complete! (+6 Looks)", "celebrate");
+        toast("Salon styling complete (+6 Looks)", "celebrate");
         updateHeader();
         renderCurrentTab();
       });
@@ -4911,49 +5000,51 @@ const BUSINESS_CATALOG = [
       homework: 10,
       examCoaching: 0,
       activitiesClubs: 8,
-      friendsSocial: 14,
-      partTimeWork: 0,
-      leisureGaming: 14,
-      selfStudy: 10
+      exerciseVarsity: 7,
+      socialFamily: 14,
+      paidWork: 0,
+      selfStudyResearch: 7,
+      idleDowntime: 10
     };
 
-    G.highSchool = {
-      currentTermGPA: 3.82,
-      classRankDecile: 5,
+    return {
       timeAllocation: defaultAlloc,
-      activeStudyMethod: "practice_problems",
-      enrolledSubjects: [
-        { id: "math", name: "AP Calculus / Advanced Math", mastery: 74, teacherStrictness: 65, currentGrade: 88, letterGrade: "B+", icon: "📐" },
-        { id: "physics", name: "Physics & Mechanics", mastery: 70, teacherStrictness: 60, currentGrade: 86, letterGrade: "B", icon: "⚛️" },
-        { id: "chemistry", name: "Chemistry", mastery: 68, teacherStrictness: 70, currentGrade: 82, letterGrade: "B-", icon: "🧪" },
-        { id: "english", name: "English Literature & Composition", mastery: 82, teacherStrictness: 50, currentGrade: 94, letterGrade: "A", icon: "📖" },
-        { id: "cs", name: "Computer Science & Logic", mastery: 78, teacherStrictness: 45, currentGrade: 92, letterGrade: "A-", icon: "💻" }
+      unallocatedHours: 0,
+      burnoutIndex: 12,
+      sleepDeprivationIndex: 0,
+      academicStanding: "Good Standing",
+      currentTermGPA: 3.85,
+      cumulativeGPA: 3.82,
+      classRankDecile: 4,
+      subjectGrades: {
+        mathematics: 92,
+        physics: 88,
+        chemistry: 85,
+        englishLiterature: 90,
+        computerScience: 95
+      },
+      classmates: [
+        { name: "Rohan Verma", tier: "Study Buddy", affection: 75, status: "Active" },
+        { name: "Ananya Iyer", tier: "Academic Rival", affection: 45, status: "Active" },
+        { name: "Vikram Malhotra", tier: "Close Friend", affection: 85, status: "Active" }
       ],
       teachers: [
-        { id: "t_math", name: "Dr. Alistair Vance", subjectName: "AP Calculus", gradingStrictness: 75, impression: { primaryTag: "curious", intellectScore: 78, workEthicScore: 72, reliabilityScore: 80, rapport: 75 }, lor: { submitted: false } },
-        { id: "t_chem", name: "Mrs. Davenport", subjectName: "Chemistry", gradingStrictness: 68, impression: { primaryTag: "hardworking", intellectScore: 65, workEthicScore: 84, reliabilityScore: 85, rapport: 70 }, lor: { submitted: false } },
-        { id: "t_eng", name: "Mr. Harrison", subjectName: "English Lit", gradingStrictness: 55, impression: { primaryTag: "brilliant", intellectScore: 88, workEthicScore: 80, reliabilityScore: 90, rapport: 85 }, lor: { submitted: false } }
+        { name: "Dr. K. S. Ramanujan", subject: "Mathematics", strictness: 8, favorability: 70 },
+        { name: "Prof. Sarah Jenkins", subject: "English Literature", strictness: 5, favorability: 82 }
       ],
-      classmates: [
-        { id: "p1", name: "Neha Patel", archetype: "Grindset Gunner", smarts: 88, friendship: 45, isStudyPartner: true },
-        { id: "p2", name: "Julian Sterling", archetype: "Varsity Athlete", smarts: 58, friendship: 60, isStudyPartner: false },
-        { id: "p3", name: "Chloe Chen", archetype: "Artsy Rebel", smarts: 72, friendship: 50, isStudyPartner: false }
+      clubs: ["Robotics & AI Club", "Competitive Chess"],
+      studentJobs: [],
+      targetColleges: [
+        { name: "IIT Bombay", country: "India", reachLevel: "Reach", status: "Preparing" },
+        { name: "Stanford University", country: "USA", reachLevel: "Dream", status: "Preparing" }
       ],
-      clubs: [
-        { id: "debate_society", name: "Varsity Debate Society", icon: "🎙️", role: "Lead Rebuttalist", coachQuality: 80, weeklyHours: 6 },
-        { id: "robotics_vex", name: "VEX Robotics Squad", icon: "🤖", role: "CAD Modeler", coachQuality: 82, weeklyHours: 6 }
+      recommendationLetters: [],
+      collegeEssays: [
+        { topic: "Personal Growth & Algorithmic Discovery", draftScore: 78, polished: false }
       ],
-      activeJob: null,
-      activeEssay: { title: "Common App Personal Statement", draftStage: 1, polish: 42, authenticity: 88, hoursInvested: 4 },
-      familyEconomy: {
-        disposableCashUSD: 6200,
-        father: { generosity: 65, strictness: 50, academicExpectations: 75, relationship: 80 },
-        mother: { generosity: 70, strictness: 45, academicExpectations: 70, relationship: 85 }
-      },
-      awards: ["High Honor Roll (Term 1)"]
+      awardsAchievements: ["National Science Olympiad State Finalist"],
+      disciplinaryRecord: []
     };
-
-    return G.highSchool;
   }
 
   function renderHighSchoolCockpit(G) {
@@ -4967,33 +5058,33 @@ const BUSINESS_CATALOG = [
     return `
       <div class="school-cockpit">
         <!-- Cockpit Header Banner -->
-        <div class="card" style="margin-bottom: 10px; background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%); border: 1px solid #4338ca;">
-          <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div class="surface-box" style="padding: 18px 20px; margin-bottom: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: baseline;">
             <div>
-              <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #a5b4fc; font-weight: 700;">
-                🎓 ${schoolName}
+              <div style="font-size: 12px; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.4px;">
+                ${schoolName}
               </div>
-              <h3 style="margin: 2px 0 0 0; font-size: 15px; font-weight: 800; color: #ffffff;">
-                Grade ${Math.max(1, Math.min(12, age - 5))} • Term GPA: <span style="color: #38bdf8;">${(hs.currentTermGPA || 3.85).toFixed(2)}</span>
-              </h3>
+              <div style="font-size: 16px; margin-top: 2px;">
+                Grade ${Math.max(1, Math.min(12, age - 5))} · Term GPA <span class="mono-val">${(hs.currentTermGPA || 3.85).toFixed(2)}</span>
+              </div>
             </div>
             <div style="text-align: right;">
-              <div style="font-size: 11px; color: #94a3b8;">Class Rank</div>
-              <div style="font-size: 13px; font-weight: 700; color: #34d399;">Top ${hs.classRankDecile || 5}%ile</div>
+              <div style="font-size: 12px; color: var(--text-tertiary);">Class rank</div>
+              <div class="mono-val" style="margin-top: 2px;">Top ${hs.classRankDecile || 5}%ile</div>
             </div>
           </div>
         </div>
 
         <!-- 8-Subtab Horizontal Navigation Strip -->
-        <div class="subtabs-bar" style="overflow-x: auto; white-space: nowrap; padding-bottom: 6px; margin-bottom: 12px;">
-          <button class="subtab-btn ${schoolSubTab === 'overview' ? 'active' : ''}" data-schooltab="overview">⏱️ Overview</button>
-          <button class="subtab-btn ${schoolSubTab === 'academics' ? 'active' : ''}" data-schooltab="academics">📚 Academics</button>
-          <button class="subtab-btn ${schoolSubTab === 'people' ? 'active' : ''}" data-schooltab="people">👥 People</button>
-          <button class="subtab-btn ${schoolSubTab === 'activities' ? 'active' : ''}" data-schooltab="activities">🏆 Activities</button>
-          <button class="subtab-btn ${schoolSubTab === 'career' ? 'active' : ''}" data-schooltab="career">💼 Career</button>
-          <button class="subtab-btn ${schoolSubTab === 'applications' ? 'active' : ''}" data-schooltab="applications">🎓 College Prep</button>
-          <button class="subtab-btn ${schoolSubTab === 'family' ? 'active' : ''}" data-schooltab="family">👨‍👩‍👦 Family & Aid</button>
-          <button class="subtab-btn ${schoolSubTab === 'records' ? 'active' : ''}" data-schooltab="records">📜 Records</button>
+        <div class="subtabs-bar">
+          <button class="subtab-btn ${schoolSubTab === 'overview' ? 'active' : ''}" data-schooltab="overview" type="button">Overview</button>
+          <button class="subtab-btn ${schoolSubTab === 'academics' ? 'active' : ''}" data-schooltab="academics" type="button">Academics</button>
+          <button class="subtab-btn ${schoolSubTab === 'people' ? 'active' : ''}" data-schooltab="people" type="button">People</button>
+          <button class="subtab-btn ${schoolSubTab === 'activities' ? 'active' : ''}" data-schooltab="activities" type="button">Activities</button>
+          <button class="subtab-btn ${schoolSubTab === 'career' ? 'active' : ''}" data-schooltab="career" type="button">Career</button>
+          <button class="subtab-btn ${schoolSubTab === 'applications' ? 'active' : ''}" data-schooltab="applications" type="button">College prep</button>
+          <button class="subtab-btn ${schoolSubTab === 'family' ? 'active' : ''}" data-schooltab="family" type="button">Family & aid</button>
+          <button class="subtab-btn ${schoolSubTab === 'records' ? 'active' : ''}" data-schooltab="records" type="button">Records</button>
         </div>
 
         <!-- Dynamic Active Subtab Viewport -->
@@ -5016,60 +5107,51 @@ const BUSINESS_CATALOG = [
     }
   }
 
-  // 1. OVERVIEW: 168-Hour Resource Budget & Fatigue
   function renderOverviewSubtab(G, hs) {
     const alloc = hs.timeAllocation || {};
-    const total = Object.values(alloc).reduce((acc, h) => acc + (Number(h) || 0), 0);
-    const free = 168 - total;
-    const isBurnout = free < 0;
+    const totalAllocated = Object.values(alloc).reduce((a, b) => a + Number(b), 0);
+    const unallocated = 168 - totalAllocated;
 
     return `
-      <div class="card" style="margin-bottom: 12px;">
-        <div class="card-title-row">
-          <div class="card-title">
-            <span>⏱️</span> Weekly 168-Hour Resource Budget
-          </div>
-          <span class="pill-badge ${isBurnout ? 'rose' : 'emerald'}">
-            ${isBurnout ? `🚨 Deficit: ${free}h` : `Free: ${free}h / week`}
-          </span>
-        </div>
-        <p style="font-size: 11px; color: var(--text-secondary); margin-bottom: 12px;">
-          Every hour spent on competitive coaching, jobs, or varsity clubs must be carved out of sleep, leisure, or socializing.
-        </p>
-
-        ${renderSliderRow("sleep", "😴 Sleep (Rec: 56h)", alloc.sleep || 56, 28, 70)}
-        ${renderSliderRow("selfStudy", "📖 Self Study", alloc.selfStudy || 10, 0, 35)}
-        ${renderSliderRow("examCoaching", "🎯 Coaching / Mocks", alloc.examCoaching || 0, 0, 25)}
-        ${renderSliderRow("activitiesClubs", "🎭 Clubs & Sports", alloc.activitiesClubs || 8, 0, 25)}
-        ${renderSliderRow("partTimeWork", "💼 Student Job", alloc.partTimeWork || 0, 0, 25)}
-        ${renderSliderRow("friendsSocial", "🎉 Friends & Dating", alloc.friendsSocial || 14, 0, 25)}
-        ${renderSliderRow("leisureGaming", "🎮 Gaming / Rest", alloc.leisureGaming || 14, 0, 35)}
-
-        ${isBurnout ? `
-          <div style="margin-top: 10px; padding: 8px 12px; background: rgba(244,63,94,0.15); border: 1px solid #f43f5e; border-radius: 8px; font-size: 11px; color: #fecdd3;">
-            ⚠️ <strong>Chronic Sleep & Schedule Deficit!</strong> Exceeding 168h triggers cognitive fatigue, drops exam focus, and spikes illness risk.
-          </div>
-        ` : ''}
+      <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px;">
+        <h2 class="section-heading first" style="margin: 0;">Weekly time budget</h2>
+        <span class="mono-sm" style="color: ${unallocated < 0 ? 'var(--accent-rose)' : 'var(--text-secondary)'};">
+          ${totalAllocated}/168h (${unallocated >= 0 ? '+' : ''}${unallocated}h unallocated)
+        </span>
       </div>
 
-      <!-- Physiological Status Matrix -->
-      <div class="card">
-        <div class="card-title-row">
-          <div class="card-title"><span>🧠</span> Mental Condition & Vigor</div>
+      <div class="surface-box" style="padding: 16px 20px; margin-bottom: 20px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px 24px;">
+          ${renderSliderRow("sleep", "Sleep", alloc.sleep, 35, 70)}
+          ${renderSliderRow("schoolClasses", "School classes", alloc.schoolClasses, 25, 45)}
+          ${renderSliderRow("homework", "Homework & assignments", alloc.homework, 0, 35)}
+          ${renderSliderRow("examCoaching", "Coaching & prep", alloc.examCoaching, 0, 35)}
+          ${renderSliderRow("selfStudyResearch", "Self-study & research", alloc.selfStudyResearch, 0, 30)}
+          ${renderSliderRow("activitiesClubs", "Clubs & leadership", alloc.activitiesClubs, 0, 25)}
+          ${renderSliderRow("exerciseVarsity", "Fitness & sports", alloc.exerciseVarsity, 0, 25)}
+          ${renderSliderRow("socialFamily", "Social & family", alloc.socialFamily, 0, 35)}
+          ${renderSliderRow("paidWork", "Student employment", alloc.paidWork, 0, 25)}
+          ${renderSliderRow("idleDowntime", "Rest & recovery", alloc.idleDowntime, 0, 35)}
         </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 6px;">
-          <div style="background: rgba(255,255,255,0.03); padding: 8px; border-radius: 6px; font-size: 11px; border: 1px solid var(--border-color);">
-            <span style="color: var(--text-secondary);">Sleep Debt:</span> <strong style="color: ${(alloc.sleep || 56) < 49 ? '#f43f5e' : '#34d399'};">${Math.max(0, 56 - (alloc.sleep || 56))}h / wk</strong>
-          </div>
-          <div style="background: rgba(255,255,255,0.03); padding: 8px; border-radius: 6px; font-size: 11px; border: 1px solid var(--border-color);">
-            <span style="color: var(--text-secondary);">Study Focus:</span> <strong>${G.cognition?.traits?.focus || 70}%</strong>
-          </div>
-          <div style="background: rgba(255,255,255,0.03); padding: 8px; border-radius: 6px; font-size: 11px; border: 1px solid var(--border-color);">
-            <span style="color: var(--text-secondary);">Exam Temperament:</span> <strong>${G.cognition?.traits?.examTemperament || 65}%</strong>
-          </div>
-          <div style="background: rgba(255,255,255,0.03); padding: 8px; border-radius: 6px; font-size: 11px; border: 1px solid var(--border-color);">
-            <span style="color: var(--text-secondary);">Burnout Risk:</span> <strong style="color: ${isBurnout ? '#f43f5e' : '#38bdf8'};">${isBurnout ? 'CRITICAL' : 'Minimal'}</strong>
-          </div>
+      </div>
+
+      <h2 class="section-heading">Physiological indicators</h2>
+      <div class="detail-grid">
+        <div>
+          <div class="detail-label">Weekly sleep</div>
+          <div class="detail-val-mono">${alloc.sleep}h <span style="font-size: 11px; color: var(--text-tertiary);">(${(alloc.sleep / 7).toFixed(1)}h/day)</span></div>
+        </div>
+        <div>
+          <div class="detail-label">Burnout index</div>
+          <div class="detail-val-mono">${hs.burnoutIndex || 12}/100</div>
+        </div>
+        <div>
+          <div class="detail-label">Sleep deficit</div>
+          <div class="detail-val-mono">${hs.sleepDeprivationIndex || 0}h</div>
+        </div>
+        <div>
+          <div class="detail-label">Academic standing</div>
+          <div class="detail-val">${hs.academicStanding || 'Good Standing'}</div>
         </div>
       </div>
     `;
@@ -5077,604 +5159,274 @@ const BUSINESS_CATALOG = [
 
   function renderSliderRow(key, label, val, min, max) {
     return `
-      <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px;">
-        <span style="font-size: 11px; color: var(--text-secondary); width: 135px;">${label}</span>
-        <input type="range" class="slider-alloc" data-key="${key}" min="${min}" max="${max}" value="${val}" style="flex: 1; accent-color: var(--accent-indigo); cursor: pointer;" />
-        <span style="font-size: 11px; font-weight: 700; color: #ffffff; width: 35px; text-align: right;">${val}h</span>
+      <div>
+        <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px;">
+          <span style="color: var(--text-secondary);">${label}</span>
+          <span class="mono-val" id="val_${key}">${val}h</span>
+        </div>
+        <input type="range" class="time-slider" data-key="${key}" min="${min}" max="${max}" value="${val}" style="width: 100%; accent-color: var(--accent-ink); cursor: pointer;">
       </div>
     `;
   }
 
-  // 2. ACADEMICS: Coursework, Study Methods & Diagnostic Mocks
   function renderAcademicsSubtab(G, hs) {
-    const subjects = hs.enrolledSubjects || [];
-    const activeMethod = hs.activeStudyMethod || "practice_problems";
-    const birthCountry = G.char ? G.char.birthCountry : "usa";
-    const examKey = birthCountry === "india" ? "jee_main" : (birthCountry === "china" ? "gaokao" : "sat");
-
+    const subjects = hs.subjectGrades || { mathematics: 92, physics: 88, chemistry: 85, englishLiterature: 90, computerScience: 95 };
     return `
-      <!-- Study Strategy Selector -->
-      <div class="card" style="margin-bottom: 12px;">
-        <div class="card-title-row">
-          <div class="card-title"><span>📖</span> Active Study Strategy</div>
-        </div>
-        <div style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; margin-top: 6px;">
-          ${Object.values(STUDY_METHODS).map(m => `
-            <button class="pill-badge ${activeMethod === m.id ? 'purple' : 'gray'} btn-set-study-method" data-method="${m.id}" style="cursor: pointer; padding: 4px 8px; font-size: 10px;">
-              ${m.name}
-            </button>
-          `).join("")}
-        </div>
-        <div style="font-size: 10px; color: var(--text-secondary); margin-top: 6px;">
-          ${STUDY_METHODS[activeMethod]?.desc || ''} (Eff: ${STUDY_METHODS[activeMethod]?.knowledgeEff}x)
-        </div>
-      </div>
-
-      <!-- Enrolled Coursework -->
-      <div class="card" style="margin-bottom: 12px;">
-        <div class="card-title-row">
-          <div class="card-title"><span>📚</span> Coursework & Academic Mastery</div>
-        </div>
-        ${subjects.map(s => `
-          <div class="list-row" style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
-            <div class="list-row-left">
-              <div class="list-icon-box" style="background: rgba(99, 102, 241, 0.15); color: #818cf8;">${s.icon || '📖'}</div>
-              <div class="list-row-text">
-                <h4>${s.name}</h4>
-                <p>Mastery: ${s.mastery}% • Strictness: ${s.teacherStrictness}%</p>
+      <h2 class="section-heading first">Subject mastery</h2>
+      <div>
+        ${Object.entries(subjects).map(([subj, grade]) => `
+          <div class="list-row">
+            <div style="flex: 1; min-width: 0;">
+              <div style="font-size: 15px; text-transform: capitalize;">${subj.replace(/([A-Z])/g, ' $1')}</div>
+              <div style="font-size: 13px; color: var(--text-tertiary); margin-top: 2px;">
+                Term grade · Standard curriculum
               </div>
             </div>
-            <div class="list-row-right">
-              <span class="pill-badge ${s.currentGrade >= 90 ? 'emerald' : (s.currentGrade >= 80 ? 'blue' : 'amber')}">
-                ${s.currentGrade}% (${s.letterGrade})
-              </span>
+            <div style="display: flex; align-items: baseline; gap: 12px;">
+              <div class="mono-val" style="font-size: 15px;">${grade}%</div>
+              <button class="btn btn-outline btn-sm btn-study-subject" data-subject="${subj}" type="button">Study</button>
             </div>
           </div>
         `).join("")}
       </div>
-
-      <!-- Diagnostic Mock Exam Engine -->
-      <div class="card">
-        <div class="card-title-row">
-          <div class="card-title"><span>📝</span> Proctored National Mock Tests</div>
-        </div>
-        <p style="font-size: 11px; color: var(--text-secondary);">
-          Simulate high-stakes examinations against cohorts of up to 12M candidates to discover your Bayesian confidence interval and projected national rank.
-        </p>
-        <div style="display: flex; gap: 8px; margin-top: 8px;">
-          <button class="btn btn-sm btn-primary btn-run-mock" data-exam="${examKey}">
-            Take Proctored ${EXAM_COHORTS[examKey]?.name || 'National'} Mock
-          </button>
-        </div>
-        ${hs.mockResults ? `
-          <div style="margin-top: 10px; padding: 10px; background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.3); border-radius: 6px; font-size: 11px; line-height: 1.5;">
-            ${hs.mockResults.formattedReport}
-          </div>
-        ` : ''}
-      </div>
     `;
   }
 
-  // 3. PEOPLE: Faculty Directory, LoRs & Classmates
   function renderPeopleSubtab(G, hs) {
-    const teachers = hs.teachers || [];
     const classmates = hs.classmates || [];
-
+    const teachers = hs.teachers || [];
     return `
-      <!-- Teachers & Sealed LoRs -->
-      <div class="card" style="margin-bottom: 12px;">
-        <div class="card-title-row">
-          <div class="card-title"><span>👨‍🏫</span> Faculty & Recommendation Letters (LoRs)</div>
-        </div>
-        ${teachers.map(t => `
-          <div class="list-row" style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
-            <div class="list-row-left">
-              <div class="list-row-text">
-                <h4>${t.name} <span style="font-size: 10px; color: var(--text-secondary);">(${t.subjectName})</span></h4>
-                <p>Perception: <strong style="color: #a855f7;">${t.impression?.primaryTag?.toUpperCase()}</strong> • Strictness: ${t.gradingStrictness}%</p>
-              </div>
+      <h2 class="section-heading first">Classmates & cohorts</h2>
+      <div>
+        ${classmates.map((c, i) => `
+          <div class="list-row">
+            <div style="flex: 1; min-width: 0;">
+              <div style="font-size: 15px;">${c.name}</div>
+              <div style="font-size: 13px; color: var(--text-tertiary); margin-top: 2px;">${c.tier} · Affection ${c.affection}%</div>
             </div>
-            <div class="list-row-right">
-              ${t.lor?.submitted ? `
-                <span class="pill-badge emerald" title="Confidential LoR filed directly to admissions under FERPA waiver">🔒 Sealed LoR</span>
-              ` : `
-                <button class="btn btn-sm btn-outline btn-request-lor" data-tid="${t.id}" style="font-size: 10px; padding: 4px 6px;">
-                  Request LoR
-                </button>
-              `}
-            </div>
+            <button class="btn btn-outline btn-sm btn-interact-classmate" data-idx="${i}" type="button">Interact</button>
           </div>
         `).join("")}
       </div>
 
-      <!-- Classmates & Study Pacts -->
-      <div class="card">
-        <div class="card-title-row">
-          <div class="card-title"><span>👥</span> Classmate Cohort & Study Alliances</div>
-        </div>
-        ${classmates.map(c => `
-          <div class="list-row" style="padding: 6px 0;">
-            <div class="list-row-left">
-              <div class="list-row-text">
-                <h4>${c.name} <span class="pill-badge gray" style="font-size: 9px;">${c.archetype}</span></h4>
-                <p>Friendship: ${c.friendship}% • Smarts: ${c.smarts}</p>
-              </div>
+      <h2 class="section-heading">Faculty & teachers</h2>
+      <div>
+        ${teachers.map((t, i) => `
+          <div class="list-row">
+            <div style="flex: 1; min-width: 0;">
+              <div style="font-size: 15px;">${t.name}</div>
+              <div style="font-size: 13px; color: var(--text-tertiary); margin-top: 2px;">${t.subject} · Strictness ${t.strictness}/10</div>
             </div>
-            <div class="list-row-right">
-              <button class="btn btn-sm ${c.isStudyPartner ? 'btn-success' : 'btn-outline'} btn-toggle-study-partner" data-pid="${c.id}" style="font-size: 9px; padding: 3px 6px;">
-                ${c.isStudyPartner ? 'Pact Active ✓' : 'Form Pact'}
-              </button>
-            </div>
+            <button class="btn btn-outline btn-sm btn-office-hours" data-idx="${i}" type="button">Office hours</button>
           </div>
         `).join("")}
       </div>
     `;
   }
 
-  // 4. ACTIVITIES: Clubs & Interscholastic Tournaments
   function renderActivitiesSubtab(G, hs) {
     const clubs = hs.clubs || [];
-
     return `
-      <div class="card" style="margin-bottom: 12px;">
-        <div class="card-title-row">
-          <div class="card-title"><span>🏆</span> Extracurricular Squads & Competitions</div>
-        </div>
-        <p style="font-size: 11px; color: var(--text-secondary); margin-bottom: 8px;">
-          Compete against simulated rival academies across 5 tournament tiers (School ➔ District ➔ State ➔ National ➔ World).
-        </p>
-        ${clubs.map(c => `
-          <div class="list-row" style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
-            <div class="list-row-left">
-              <div class="list-icon-box" style="background: rgba(16, 185, 129, 0.15); color: #34d399;">${c.icon}</div>
-              <div class="list-row-text">
-                <h4>${c.name}</h4>
-                <p>Role: <strong>${c.role}</strong> • Coach Quality: ${c.coachQuality}%</p>
-              </div>
+      <h2 class="section-heading first">Extracurricular leadership</h2>
+      <div>
+        ${clubs.map(club => `
+          <div class="list-row">
+            <div style="flex: 1; min-width: 0;">
+              <div style="font-size: 15px;">${club}</div>
+              <div style="font-size: 13px; color: var(--text-tertiary); margin-top: 2px;">Active member</div>
             </div>
-            <div class="list-row-right">
-              <button class="btn btn-sm btn-primary btn-club-match" data-cid="${c.id}" style="font-size: 10px; padding: 4px 8px;">
-                Compete
-              </button>
-            </div>
+            <button class="btn btn-outline btn-sm btn-compete-club" data-club="${club}" type="button">Compete</button>
           </div>
         `).join("")}
       </div>
     `;
   }
 
-  // 5. CAREER: Student Employment & Internships
   function renderCareerSubtab(G, hs) {
-    const age = G.char ? G.char.age : 16;
-    const jobs = STUDENT_JOBS_CATALOG.filter(j => age >= j.minAge && age <= j.maxAge);
-    const activeJob = hs.activeJob;
-
+    const jobs = hs.studentJobs || [];
     return `
-      <div class="card">
-        <div class="card-title-row">
-          <div class="card-title"><span>💼</span> Student Jobs & Part-Time Employment</div>
-          ${activeJob ? `<span class="pill-badge emerald">Employed</span>` : ''}
-        </div>
-        ${activeJob ? `
-          <div style="background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3); padding: 10px; border-radius: 8px; margin-bottom: 12px;">
-            <h4 style="margin: 0 0 4px 0; font-size: 13px; color: #38bdf8;">${activeJob.title}</h4>
-            <p style="font-size: 11px; color: var(--text-secondary); margin: 0;">
-              Wage: $${activeJob.baseHourlyUSD}/hr • Scheduled: ${hs.timeAllocation?.partTimeWork || 0}h/week
+      <h2 class="section-heading first">Student employment</h2>
+      <div>
+        ${jobs.length === 0 ? `
+          <div class="surface-box" style="padding: 24px; text-align: center;">
+            <div style="font-size: 15px; font-weight: 500; margin-bottom: 6px;">No active employment</div>
+            <p style="font-size: 13px; color: var(--text-secondary); margin: 0 auto 16px; max-width: 360px;">
+              Apply for student fellowships, tutoring roles, or technical internships to build early commercial acumen.
             </p>
-            <button class="btn btn-sm btn-outline btn-quit-job" style="margin-top: 8px; color: #f43f5e; border-color: #f43f5e;">
-              Quit Job
-            </button>
+            <button class="btn btn-primary btn-sm btn-find-student-job" type="button">Browse student jobs</button>
           </div>
-        ` : ''}
-
-        <div style="font-size: 11px; font-weight: 700; color: #cbd5e1; margin-bottom: 6px;">Available Openings (Age ${age})</div>
-        ${jobs.length === 0 ? `<p style="font-size: 11px; color: var(--text-secondary);">No student openings available at your current age.</p>` : ''}
-        ${jobs.map(j => `
-          <div class="list-row" style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
-            <div class="list-row-left">
-              <div class="list-row-text">
-                <h4>${j.title}</h4>
-                <p>$${j.baseHourlyUSD}/hr • Max ${j.weeklyHoursMax}h/wk</p>
-              </div>
+        ` : jobs.map(j => `
+          <div class="list-row">
+            <div style="flex: 1; min-width: 0;">
+              <div style="font-size: 15px;">${j.title}</div>
+              <div style="font-size: 13px; color: var(--text-tertiary); margin-top: 2px;">$${j.hourlyRateUSD}/hr · ${j.hoursPerWeek}h/wk</div>
             </div>
-            <div class="list-row-right">
-              <button class="btn btn-sm btn-primary btn-apply-job" data-jid="${j.id}" style="font-size: 10px;">
-                Apply
-              </button>
-            </div>
+            <div class="mono-val">$${j.hourlyRateUSD * j.hoursPerWeek * 52}/yr</div>
           </div>
         `).join("")}
       </div>
     `;
   }
 
-  // 6. APPLICATIONS: Multi-Draft Essay Studio & College Admissions
   function renderApplicationsSubtab(G, hs) {
-    const essay = hs.activeEssay || { title: "Common App Personal Statement", draftStage: 1, polish: 45, authenticity: 85 };
-
+    const targets = hs.targetColleges || [];
+    const essays = hs.collegeEssays || [];
     return `
-      <!-- Multi-Draft Essay Studio -->
-      <div class="card" style="margin-bottom: 12px;">
-        <div class="card-title-row">
-          <div class="card-title"><span>✍️</span> Multi-Draft Admissions Essay Studio</div>
-          <span class="pill-badge purple">Draft ${essay.draftStage}/4</span>
-        </div>
-        <p style="font-size: 11px; color: var(--text-secondary); margin-bottom: 8px;">
-          Balance technical polish with raw personal authenticity. Private consultants increase polish but risk over-sanitizing authenticity!
-        </p>
-        <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 8px;">
-          <span>Polish: <strong style="color: #38bdf8;">${essay.polish}%</strong></span>
-          <span>Authenticity: <strong style="color: #34d399;">${essay.authenticity}%</strong></span>
-        </div>
-        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-          <button class="btn btn-sm btn-outline btn-revise-essay" data-reviewer="self">Self-Edit (+8 Polish)</button>
-          <button class="btn btn-sm btn-primary btn-revise-essay" data-reviewer="teacher">Ask Teacher (+14 Polish)</button>
-          <button class="btn btn-sm btn-outline btn-revise-essay" data-reviewer="consultant" style="color: #fbbf24; border-color: #fbbf24;">Consultant ($500)</button>
-        </div>
+      <h2 class="section-heading first">Admissions portfolio</h2>
+      <div>
+        ${targets.map(t => `
+          <div class="list-row">
+            <div style="flex: 1; min-width: 0;">
+              <div style="font-size: 15px;">${t.name}</div>
+              <div style="font-size: 13px; color: var(--text-tertiary); margin-top: 2px;">${t.country} · ${t.reachLevel}</div>
+            </div>
+            <span class="mono-sm" style="color: var(--accent-emerald);">${t.status}</span>
+          </div>
+        `).join("")}
       </div>
 
-      <!-- Target University Admissions Launchpad -->
-      <div class="card">
-        <div class="card-title-row">
-          <div class="card-title"><span>🏛️</span> Target University Applications</div>
-        </div>
-        <div style="display: flex; flex-direction: column; gap: 8px;">
+      <h2 class="section-heading">Application essays</h2>
+      <div>
+        ${essays.map((e, idx) => `
           <div class="list-row">
-            <div class="list-row-left">
-              <div class="list-row-text">
-                <h4>Stanford / Harvard / MIT</h4>
-                <p>US Dual-Reader Holistic Admissions Committee</p>
-              </div>
+            <div style="flex: 1; min-width: 0;">
+              <div style="font-size: 15px;">${e.topic}</div>
+              <div style="font-size: 13px; color: var(--text-tertiary); margin-top: 2px;">Draft score <span class="mono-val">${e.draftScore}</span>/100</div>
             </div>
-            <div class="list-row-right">
-              <button class="btn btn-sm btn-primary btn-submit-college-app" data-uni="stanford">Submit Dossier</button>
-            </div>
+            <button class="btn btn-outline btn-sm btn-polish-essay" data-idx="${idx}" type="button">Polish draft</button>
           </div>
-          <div class="list-row">
-            <div class="list-row-left">
-              <div class="list-row-text">
-                <h4>IIT Bombay / IIT Delhi</h4>
-                <p>Joint Seat Allocation Authority (JoSAA Cutoffs)</p>
-              </div>
-            </div>
-            <div class="list-row-right">
-              <button class="btn btn-sm btn-primary btn-submit-college-app" data-uni="iit_bombay">Counseling</button>
-            </div>
-          </div>
-        </div>
+        `).join("")}
       </div>
     `;
   }
 
-  // 7. FAMILY: Household Economy & 'Who Pays?' Negotiations
   function renderFamilySubtab(G, hs) {
-    const fam = hs.familyEconomy || { disposableCashUSD: 6200, father: { generosity: 65, academicExpectations: 75 } };
-
     return `
-      <div class="card" style="margin-bottom: 12px;">
-        <div class="card-title-row">
-          <div class="card-title"><span>👨‍👩‍👦</span> Household Finances & Generosity</div>
+      <h2 class="section-heading first">Parental expectations & aid</h2>
+      <div class="detail-grid">
+        <div>
+          <div class="detail-label">Family wealth tier</div>
+          <div class="detail-val" style="text-transform: capitalize;">${G.char.familyWealth.replace("_", " ")}</div>
         </div>
-        <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 8px;">
-          As a student, major capital requests must be pitched to parents. They evaluate disposable cash, generosity, and your term GPA.
+        <div>
+          <div class="detail-label">College budget allocation</div>
+          <div class="detail-val-mono">${G.char.familyWealth === 'billionaire' ? 'Full Sponsorship (Any)' : (G.char.familyWealth === 'affluent' ? '$180,000 Total' : '$35,000 Total')}</div>
         </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
-          <div style="background: rgba(255,255,255,0.03); padding: 8px; border-radius: 6px; font-size: 11px; border: 1px solid var(--border-color);">
-            <span style="color: var(--text-secondary);">Disposable Cash:</span> <strong>$${(fam.disposableCashUSD || 5000).toLocaleString()}</strong>
-          </div>
-          <div style="background: rgba(255,255,255,0.03); padding: 8px; border-radius: 6px; font-size: 11px; border: 1px solid var(--border-color);">
-            <span style="color: var(--text-secondary);">Academic Expectation:</span> <strong>${fam.father?.academicExpectations || 75}%</strong>
-          </div>
-        </div>
-
-        <div style="font-size: 11px; font-weight: 700; color: #cbd5e1; margin-bottom: 6px;">Request Educational Sponsorship</div>
-        <div style="display: flex; flex-direction: column; gap: 6px;">
-          <button class="btn btn-sm btn-outline btn-ask-parents-pay" data-item="sat_coaching">
-            Ask to Fund National Coaching ($1,500)
-          </button>
-          <button class="btn btn-sm btn-outline btn-ask-parents-pay" data-item="laptop_coding">
-            Ask to Buy Coding Workstation ($1,200)
-          </button>
-          <button class="btn btn-sm btn-outline btn-ask-parents-pay" data-item="college_tuition">
-            Ask to Fund University Tuition ($15,000)
-          </button>
-        </div>
+      </div>
+      <div style="margin-top: 14px;">
+        <button class="btn btn-outline btn-sm" id="btnRequestTuitionSupport" type="button">Negotiate tuition support</button>
       </div>
     `;
   }
 
-  // 8. RECORDS: Transcripts & Awards
   function renderRecordsSubtab(G, hs) {
-    const awards = hs.awards || ["State Debate Championship Quarterfinalist", "High Honor Roll (Term 1)"];
-
+    const awards = hs.awardsAchievements || [];
     return `
-      <div class="card">
-        <div class="card-title-row">
-          <div class="card-title"><span>📜</span> Official Academic Transcript & Awards</div>
-        </div>
-        <div style="margin-bottom: 12px;">
-          <h4 style="font-size: 12px; color: #a5b4fc; margin-bottom: 4px;">Verified Honors & Credentials</h4>
-          ${awards.map(a => `
-            <div style="font-size: 11px; padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.05); color: #cbd5e1;">
-              🎖️ ${a}
-            </div>
-          `).join("")}
-        </div>
+      <h2 class="section-heading first">Academic honors & achievements</h2>
+      <div>
+        ${awards.map(a => `
+          <div class="list-row">
+            <div style="font-size: 15px;">${a}</div>
+          </div>
+        `).join("")}
       </div>
     `;
   }
 
-  // Attach Event Listeners to School Cockpit UI
   function attachSchoolCockpitListeners(G, renderCallback) {
-    // 1. Subtab Switching
-    document.querySelectorAll("[data-schooltab]").forEach(btn => {
+    const hs = G.highSchool || initHighSchoolState(G);
+
+    document.querySelectorAll(".subtab-btn[data-schooltab]").forEach(btn => {
       btn.addEventListener("click", () => {
         schoolSubTab = btn.dataset.schooltab;
         renderCallback();
       });
     });
 
-    // 2. Time Allocator Sliders
-    document.querySelectorAll(".slider-alloc").forEach(input => {
-      input.addEventListener("input", (e) => {
+    document.querySelectorAll(".time-slider").forEach(slider => {
+      slider.addEventListener("input", (e) => {
         const key = e.target.dataset.key;
         const val = parseInt(e.target.value, 10);
-        if (G.highSchool && G.highSchool.timeAllocation) {
-          G.highSchool.timeAllocation[key] = val;
-          renderCallback();
+        if (hs.timeAllocation) {
+          hs.timeAllocation[key] = val;
         }
+        const valEl = document.getElementById(`val_${key}`);
+        if (valEl) valEl.textContent = `${val}h`;
       });
-    });
-
-    // 3. Study Strategy Setter
-    document.querySelectorAll(".btn-set-study-method").forEach(btn => {
-      btn.addEventListener("click", () => {
-        if (G.highSchool) {
-          G.highSchool.activeStudyMethod = btn.dataset.method;
-          toast(`Switched study strategy to ${STUDY_METHODS[btn.dataset.method]?.name}!`, "info");
-          renderCallback();
-        }
-      });
-    });
-
-    // 4. Proctored Mock Exam
-    document.querySelectorAll(".btn-run-mock").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const examKey = btn.dataset.exam;
-        const mockResult = runProctoredMockExam(G.char, examKey, 1);
-        G.highSchool.mockResults = mockResult;
-        toast(`Completed mock test: ${mockResult.formattedReport}`, "celebrate");
+      slider.addEventListener("change", () => {
         renderCallback();
       });
     });
 
-    // 5. LoR Requests
-    document.querySelectorAll(".btn-request-lor").forEach(btn => {
+    document.querySelectorAll(".btn-study-subject").forEach(btn => {
       btn.addEventListener("click", () => {
-        const tid = btn.dataset.tid;
-        const teacher = G.highSchool?.teachers?.find(t => t.id === tid);
-        if (teacher) {
-          const lor = generateRecommendationLetter(teacher, G.char?.firstName || "Student");
-          teacher.lor = lor;
-          modal("Recommendation Request Outcome", `
-            <p style="font-size: 13px; font-style: italic; color: #cbd5e1; margin-bottom: 12px;">
-              ${lor.verbalResponse}
-            </p>
-            <div style="padding: 8px; background: rgba(16, 185, 129, 0.15); border: 1px dashed #10b981; border-radius: 8px; font-size: 11px; color: #a7f3d0;">
-              🔒 <strong>Confidential Letter Submitted:</strong> Under FERPA rules, this document is sealed directly to your college admissions portal.
-            </div>
-          `);
-          renderCallback();
+        const subj = btn.dataset.subject;
+        if (!consumeEnergy(15, "study_subj", 3)) return;
+        if (hs.subjectGrades && hs.subjectGrades[subj] !== undefined) {
+          hs.subjectGrades[subj] = Math.min(100, hs.subjectGrades[subj] + 3);
         }
-      });
-    });
-
-    // 6. Club Tournament Matches
-    document.querySelectorAll(".btn-club-match").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const cid = btn.dataset.cid;
-        const club = G.highSchool?.clubs?.find(c => c.id === cid);
-        if (club) {
-          const result = resolveClubMatch(club, G.stats, "state");
-          modal(`${club.name} Tournament Result`, `
-            <div style="text-align: center; margin-bottom: 12px;">
-              <div style="font-size: 28px;">${result.victory ? '🏆' : '🥈'}</div>
-              <h3 style="margin: 4px 0; color: ${result.victory ? '#34d399' : '#f43f5e'};">
-                ${result.victory ? 'VICTORY!' : 'DEFEAT'}
-              </h3>
-              <p style="font-size: 12px; color: #94a3b8;">
-                Your Squad: <strong>${result.playerScore} pts</strong> vs ${result.opponentName}: <strong>${result.opponentScore} pts</strong>
-              </p>
-            </div>
-          `);
-          if (result.victory) {
-            G.stats.prestige = Math.min(100, (G.stats.prestige || 50) + 3);
-          }
-          renderCallback();
-        }
-      });
-    });
-
-    // 7. Multi-Draft Essay Revision
-    document.querySelectorAll(".btn-revise-essay").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const reviewer = btn.dataset.reviewer;
-        if (reviewer === "consultant" && (G.fin?.cash || 0) < 500) {
-          toast("Requires $500 cash to hire private consultant!", "error");
-          return;
-        }
-        if (reviewer === "consultant") G.fin.cash -= 500;
-
-        G.highSchool.activeEssay = iterateEssay(G.highSchool.activeEssay, reviewer);
-        toast(`Revised essay draft (Draft ${G.highSchool.activeEssay.draftStage}/4)!`, "celebrate");
+        toast(`Studied ${subj} (+Mastery)`, "celebrate");
+        updateHeader();
         renderCallback();
       });
     });
 
-    // 8. Ask Parents to Pay
-    document.querySelectorAll(".btn-ask-parents-pay").forEach(btn => {
+    document.querySelectorAll(".btn-interact-classmate").forEach(btn => {
       btn.addEventListener("click", () => {
-        const itemKey = btn.dataset.item;
-        const expenseMap = {
-          sat_coaching: { name: "National Exam Coaching", costUSD: 1500 },
-          laptop_coding: { name: "Coding Workstation Laptop", costUSD: 1200 },
-          college_tuition: { name: "University Tuition", costUSD: 15000 }
-        };
-        const exp = expenseMap[itemKey];
-        const outcome = evaluateParentNegotiation(G.highSchool.familyEconomy, exp.name, exp.costUSD, G.highSchool.currentTermGPA);
-
-        modal(`Parental Response: ${exp.name}`, `
-          <p style="font-size: 13px; font-style: italic; color: #cbd5e1; margin-bottom: 12px;">
-            ${outcome.quote}
-          </p>
-          <div style="padding: 8px; background: rgba(56, 189, 248, 0.15); border-radius: 8px; font-size: 11px; color: #bae6fd;">
-            Outcome: <strong>${outcome.verdict}</strong> (Parents pay ${outcome.parentPct}%)
-          </div>
-        `);
+        const idx = parseInt(btn.dataset.idx, 10);
+        if (!consumeEnergy(10, "interact_class", 3)) return;
+        if (hs.classmates && hs.classmates[idx]) {
+          hs.classmates[idx].affection = Math.min(100, hs.classmates[idx].affection + 6);
+        }
+        toast("Socialized with classmate (+Affection)", "celebrate");
+        updateHeader();
         renderCallback();
       });
     });
 
-    // 9. Student Job Apply & Quit
-    document.querySelectorAll(".btn-apply-job").forEach(btn => {
+    document.querySelectorAll(".btn-office-hours").forEach(btn => {
       btn.addEventListener("click", () => {
-        const jid = btn.dataset.jid;
-        const job = STUDENT_JOBS_CATALOG.find(j => j.id === jid);
-        if (job && G.highSchool) {
-          G.highSchool.activeJob = job;
-          G.highSchool.timeAllocation.partTimeWork = Math.min(12, job.weeklyHoursMax || 10);
-          toast(`Hired as ${job.title} at $${job.baseHourlyUSD}/hr!`, "celebrate");
-          renderCallback();
+        const idx = parseInt(btn.dataset.idx, 10);
+        if (!consumeEnergy(15, "office_hrs", 2)) return;
+        if (hs.teachers && hs.teachers[idx]) {
+          hs.teachers[idx].favorability = Math.min(100, hs.teachers[idx].favorability + 8);
         }
+        toast("Attended faculty office hours (+Favorability)", "celebrate");
+        updateHeader();
+        renderCallback();
       });
     });
 
-    document.querySelectorAll(".btn-quit-job").forEach(btn => {
+    document.querySelectorAll(".btn-compete-club").forEach(btn => {
       btn.addEventListener("click", () => {
-        if (G.highSchool) {
-          G.highSchool.activeJob = null;
-          G.highSchool.timeAllocation.partTimeWork = 0;
-          toast("Resigned from student job.", "info");
-          renderCallback();
-        }
+        const club = btn.dataset.club;
+        if (!consumeEnergy(20, "compete_club", 2)) return;
+        G.stats.prestige = Math.min(100, G.stats.prestige + 3);
+        toast(`Competed in ${club} regional match (+Prestige)`, "celebrate");
+        updateHeader();
+        renderCallback();
       });
     });
 
-    // 10. Study Partner Toggle
-    document.querySelectorAll(".btn-toggle-study-partner").forEach(btn => {
+    document.querySelectorAll(".btn-polish-essay").forEach(btn => {
       btn.addEventListener("click", () => {
-        const pid = btn.dataset.pid;
-        const classmate = G.highSchool?.classmates?.find(p => p.id === pid);
-        if (classmate) {
-          classmate.isStudyPartner = !classmate.isStudyPartner;
-          toast(classmate.isStudyPartner ? `Formed study pact with ${classmate.name}!` : `Ended study pact with ${classmate.name}.`, "info");
-          renderCallback();
+        const idx = parseInt(btn.dataset.idx, 10);
+        if (!consumeEnergy(20, "polish_essay", 2)) return;
+        if (hs.collegeEssays && hs.collegeEssays[idx]) {
+          hs.collegeEssays[idx].draftScore = Math.min(100, hs.collegeEssays[idx].draftScore + 5);
         }
+        toast("Polished admissions essay draft (+Score)", "celebrate");
+        updateHeader();
+        renderCallback();
       });
     });
 
-    // 11. Target University Admissions
-    document.querySelectorAll(".btn-submit-college-app").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const uniKey = btn.dataset.uni;
-        if (uniKey === "stanford") {
-          const applicant = {
-            gpaWeighted: ((G.highSchool?.currentTermGPA || 3.8) / 4.0) * 4.8,
-            satScore: G.edu?.examScores?.sat || 1480,
-            rigorIndex: 0.88,
-            ecTier: 2,
-            hasSpike: true,
-            lorScore: 88,
-            essayDrafts: G.highSchool?.activeEssay?.draftStage || 2,
-            isFirstGen: false
-          };
-          const res = evaluateUSAdmissionsDossier(applicant, { tier: 1 });
-          let badgeColor = res.decision === "ADMIT" ? "#10b981" : (res.decision === "WAITLIST" ? "#f59e0b" : "#ef4444");
-          modal("Stanford Admissions Committee Dossier Outcome", `
-            <div style="text-align: center; margin-bottom: 14px;">
-              <div style="font-size: 32px;">${res.decision === 'ADMIT' ? '🌲🎓' : (res.decision === 'WAITLIST' ? '⏳' : '📜')}</div>
-              <h3 style="margin: 6px 0; color: ${badgeColor}; font-size: 18px; font-weight: 800;">DECISION: ${res.decision}</h3>
-              <p style="font-size: 12px; color: #94a3b8;">Holistic Dual-Reader Admissions Committee Review</p>
-            </div>
-            <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); padding: 12px; border-radius: 8px; font-size: 11px; line-height: 1.6; margin-bottom: 12px;">
-              <div>Reader 1 (Admissions Officer): <strong>${res.reader1} / 6.0</strong></div>
-              <div>Reader 2 (Faculty Reader): <strong>${res.reader2} / 6.0</strong></div>
-              <div>Committee Composite: <strong>${res.compositeScore}</strong> (Admit cutoff: &le; 1.85)</div>
-            </div>
-            ${res.decision === 'ADMIT' ? `
-              <div style="padding: 10px; background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; border-radius: 8px; font-size: 12px; color: #a7f3d0; margin-bottom: 12px;">
-                🎉 <strong>Congratulations!</strong> You have been offered admission to Stanford University Class of 2028!
-              </div>
-              <button class="btn btn-emerald btn-full btn-matriculate-uni" data-name="Stanford University" data-tuition="58000" data-prestige="98">
-                Accept Offer & Matriculate ($58,000 / yr)
-              </button>
-            ` : `
-              <p style="font-size: 11px; color: #94a3b8;">Our admissions committee faced the most competitive applicant pool in history, with over 55,000 candidates for 2,000 seats.</p>
-            `}
-          `);
-          document.querySelector(".btn-matriculate-uni")?.addEventListener("click", (e) => {
-            const mBtn = e.currentTarget;
-            G.edu.currentUni = {
-              name: mBtn.dataset.name,
-              major: "Computer Science",
-              year: 1,
-              totalYears: 4,
-              tuition: parseInt(mBtn.dataset.tuition, 10),
-              prestige: parseInt(mBtn.dataset.prestige, 10)
-            };
-            G.edu.stage = "University (Yr 1)";
-            closeModal();
-            toast(`Matriculated into ${mBtn.dataset.name}!`, "celebrate");
-            renderCallback();
-          });
-        } else if (uniKey === "iit_bombay") {
-          const jeeScore = G.edu?.examScores?.jee || 0;
-          const passed = jeeScore >= 98.5;
-          modal("IIT Bombay Joint Seat Allocation (JoSAA)", `
-            <div style="text-align: center; margin-bottom: 14px;">
-              <div style="font-size: 32px;">${passed ? '🇮🇳🏛️' : '📚'}</div>
-              <h3 style="margin: 6px 0; color: ${passed ? '#10b981' : '#ef4444'}; font-size: 18px; font-weight: 800;">
-                ${passed ? 'SEAT ALLOCATED: Computer Science & Eng.' : 'RANK CUTOFF NOT MET'}
-              </h3>
-              <p style="font-size: 12px; color: #94a3b8;">JEE Advanced Common Rank List (CRL)</p>
-            </div>
-            <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); padding: 12px; border-radius: 8px; font-size: 11px; line-height: 1.6; margin-bottom: 12px;">
-              <div>Your JEE Standing: <strong>${jeeScore > 0 ? jeeScore + '%ile' : 'No JEE Score Recorded'}</strong></div>
-              <div>IIT Bombay CSE Cutoff: <strong>99.85 %ile (CRL Rank &le; 65)</strong></div>
-              <div>IIT Bombay Mechanical / Elec Cutoff: <strong>98.50 %ile (CRL Rank &le; 1,200)</strong></div>
-            </div>
-            ${passed ? `
-              <div style="padding: 10px; background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; border-radius: 8px; font-size: 12px; color: #a7f3d0; margin-bottom: 12px;">
-                🇮🇳 <strong>Seat Confirmed:</strong> You have been allotted B.Tech in CSE at Indian Institute of Technology Bombay!
-              </div>
-              <button class="btn btn-emerald btn-full btn-matriculate-uni" data-name="IIT Bombay" data-tuition="2800" data-prestige="96">
-                Accept JoSAA Allocation (₹2.2 Lakh / yr)
-              </button>
-            ` : `
-              <p style="font-size: 11px; color: #94a3b8;">Take JEE Main and prepare with mock tests to improve your cohort percentile rank.</p>
-            `}
-          `);
-          document.querySelector(".btn-matriculate-uni")?.addEventListener("click", (e) => {
-            const mBtn = e.currentTarget;
-            G.edu.currentUni = {
-              name: mBtn.dataset.name,
-              major: "Computer Science",
-              year: 1,
-              totalYears: 4,
-              tuition: parseInt(mBtn.dataset.tuition, 10),
-              prestige: parseInt(mBtn.dataset.prestige, 10)
-            };
-            G.edu.stage = "University (Yr 1)";
-            closeModal();
-            toast(`Matriculated into ${mBtn.dataset.name}!`, "celebrate");
-            renderCallback();
-          });
-        }
-      });
+    document.getElementById("btnRequestTuitionSupport")?.addEventListener("click", () => {
+      toast("Discussed college financing with parents. Support confirmed.", "celebrate");
     });
   }
 
-  // TAB 2: EDUCATION, EXAMS & CAREER
+  // TAB 2: EDUCATION & CAREER TAB
   let eduViewSub = "school"; // "school", "corporate", "special"
   function renderEducationCareerTab(vc) {
     const c = COUNTRIES[G.char.birthCountry] || COUNTRIES.india;
@@ -5682,9 +5434,9 @@ const BUSINESS_CATALOG = [
 
     vc.innerHTML = `
       <div class="subtabs-bar">
-        <button class="subtab-btn ${eduViewSub === 'school' ? 'active' : ''}" id="subtabSchool">🎓 School & Exams</button>
-        <button class="subtab-btn ${eduViewSub === 'corporate' ? 'active' : ''}" id="subtabCorp">💼 Corporate Ladders</button>
-        <button class="subtab-btn ${eduViewSub === 'special' ? 'active' : ''}" id="subtabSpec">✨ Special Careers</button>
+        <button class="subtab-btn ${eduViewSub === 'school' ? 'active' : ''}" id="subtabSchool" type="button">Schooling</button>
+        <button class="subtab-btn ${eduViewSub === 'corporate' ? 'active' : ''}" id="subtabCorp" type="button">Corporate</button>
+        <button class="subtab-btn ${eduViewSub === 'special' ? 'active' : ''}" id="subtabSpec" type="button">Special</button>
       </div>
 
       ${eduViewSub === 'school' ? (G.char.age <= 22 ? renderHighSchoolCockpit(G) : renderSchoolSubview(c, hasDegree)) : ''}
@@ -5708,303 +5460,259 @@ const BUSINESS_CATALOG = [
 
     return `
       <!-- Academic Standing -->
-      <div class="card">
-        <div class="card-title-row">
-          <div class="card-title"><span>🏫</span> Academic Standing</div>
-          <span class="pill-badge emerald">${G.edu.currentUni ? `University (Yr ${G.edu.currentUni.year})` : G.edu.stage}</span>
+      <h2 class="section-heading first">Academic standing</h2>
+      <div class="detail-grid">
+        <div>
+          <div class="detail-label">Institution / Degree</div>
+          <div class="detail-val">${G.edu.currentUni ? G.edu.currentUni.name : (c.name + ' Academic Framework')}</div>
         </div>
-        <div style="font-size: 12px; line-height: 1.5; margin-bottom: 8px;">
-          ${G.edu.currentUni ? `
-            <div>University: <strong>${G.edu.currentUni.name}</strong></div>
-            <div>Degree: <strong>${G.edu.currentUni.major}</strong> (Year ${G.edu.currentUni.year} of ${G.edu.currentUni.totalYears})</div>
-          ` : `
-            <div>Curriculum: <strong>${c.name} Academic Framework</strong></div>
-            ${G.childhood.preschoolChoice ? `<div>Preschool: <strong>${G.childhood.preschoolChoice}</strong></div>` : ''}
-            ${G.childhood.primaryHobby ? `<div>Childhood Passion: <strong>${G.childhood.primaryHobby}</strong></div>` : ''}
-            ${G.childhood.class10Score ? `<div>Class 10 Board Score: <strong>${G.childhood.class10Score}%</strong></div>` : ''}
-            ${G.childhood.streamChoice ? `<div>Senior Secondary Stream: <strong>${G.childhood.streamChoice.toUpperCase()}</strong></div>` : ''}
-            ${G.childhood.coachingChoice ? `<div>Coaching Institute: <strong>${G.childhood.coachingChoice}</strong></div>` : ''}
-            ${G.childhood.class12Score ? `<div>Class 12 Board Score: <strong>${G.childhood.class12Score}%</strong></div>` : ''}
-          `}
-          ${G.edu.degrees.length > 0 ? `
-            <div style="margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border-color);">
-              <span style="color: var(--accent-emerald); font-weight: 700;">Conferred Degrees:</span>
-              ${G.edu.degrees.map(d => `<div style="font-weight: 600;">🎓 ${d.title} — ${d.uni}</div>`).join("")}
-            </div>
-          ` : ''}
+        <div>
+          <div class="detail-label">Stage</div>
+          <div class="detail-val">${G.edu.currentUni ? `Year ${G.edu.currentUni.year} of ${G.edu.currentUni.totalYears}` : G.edu.stage}</div>
+        </div>
+        <div>
+          <div class="detail-label">Class 10 boards</div>
+          <div class="detail-val-mono">${G.childhood.class10Score ? G.childhood.class10Score + '%' : '—'}</div>
+        </div>
+        <div>
+          <div class="detail-label">Class 12 boards</div>
+          <div class="detail-val-mono">${G.childhood.class12Score ? G.childhood.class12Score + '%' : '—'}</div>
         </div>
       </div>
 
-      <!-- HIGH SCHOOL ENTRANCE EXAMS (Class 12 / Age 17+) -->
-      ${age >= 16 ? `
-        <div class="card">
-          <div class="card-title-row">
-            <div class="card-title"><span>✍️</span> Senior Secondary Entrance Exams (Class 12)</div>
-          </div>
-          <p style="font-size: 11px; color: var(--text-secondary); margin-bottom: 8px;">
-            National competitive entrance examinations taken during or after Class 12 for undergraduate admissions.
-          </p>
-          <div style="display: flex; flex-direction: column; gap: 6px;">
-            <!-- JEE -->
+      ${G.edu.degrees.length > 0 ? `
+        <h2 class="section-heading">Conferred degrees</h2>
+        <div>
+          ${G.edu.degrees.map(d => `
             <div class="list-row">
-              <div>
-                <h4>JEE Main & Advanced</h4>
-                <p>For IIT Bombay, IIT Delhi & BITS. <strong>Requires PCM Stream</strong>.</p>
+              <div style="flex: 1; min-width: 0;">
+                <div style="font-size: 15px;">${d.title}</div>
+                <div style="font-size: 13px; color: var(--text-tertiary); margin-top: 2px;">${d.uni}</div>
               </div>
-              ${G.edu.examScores.jee ? `<span class="pill-badge emerald">${G.edu.examScores.jee}%ile</span>` : `
-                <button class="btn btn-sm btn-primary btn-take-exam" data-exam="jee" ${stream !== 'pcm' ? 'disabled title="Requires Science PCM Stream"' : ''}>
-                  ${stream === 'pcm' ? 'Take JEE ($40)' : 'Locked (PCM Stream Only)'}
-                </button>
-              `}
+              <span class="mono-sm">Conferred</span>
             </div>
+          `).join("")}
+        </div>
+      ` : ''}
 
-            <!-- NEET -->
-            <div class="list-row">
-              <div>
-                <h4>NEET UG</h4>
-                <p>For AIIMS New Delhi & Top Medical Colleges. <strong>Requires PCB Stream</strong>.</p>
-              </div>
-              ${G.edu.examScores.neet ? `<span class="pill-badge emerald">${G.edu.examScores.neet}/720</span>` : `
-                <button class="btn btn-sm btn-primary btn-take-exam" data-exam="neet" ${stream !== 'pcb' ? 'disabled title="Requires Science PCB Stream"' : ''}>
-                  ${stream === 'pcb' ? 'Take NEET ($30)' : 'Locked (PCB Stream Only)'}
-                </button>
-              `}
-            </div>
-
-            <!-- SAT -->
-            <div class="list-row">
-              <div>
-                <h4>SAT Reasoning Test</h4>
-                <p>Scored out of 1600. Benchmark for US Ivies, Stanford, MIT, Oxford.</p>
-              </div>
-              ${G.edu.examScores.sat ? `<span class="pill-badge emerald">${G.edu.examScores.sat}/1600</span>` : `
-                <button class="btn btn-sm btn-primary btn-take-exam" data-exam="sat">Take SAT ($110)</button>
-              `}
+      <!-- HIGH SCHOOL ENTRANCE EXAMS -->
+      <h2 class="section-heading">Examinations</h2>
+      <div>
+        <!-- JEE -->
+        <div class="list-row">
+          <div style="flex: 1; min-width: 0;">
+            <div style="font-size: 15px;">JEE Main & Advanced</div>
+            <div style="font-size: 13px; color: var(--text-tertiary); margin-top: 2px;">
+              For IIT Bombay & IIT Delhi · Requires Science PCM
             </div>
           </div>
-        </div>
-      ` : `
-        <div class="card">
-          <div class="card-title-row">
-            <div class="card-title"><span>✍️</span> High School Entrance Exams</div>
-          </div>
-          <p style="font-size: 11px; color: var(--text-secondary);">
-            National competitive examinations (JEE for Engineering, NEET for Medical, SAT for Abroad) unlock in Class 12 (Age 17+). Currently focus on school foundations!
-          </p>
-        </div>
-      `}
-
-      <!-- POST-GRADUATION COMPETITIVE EXAMS (STRICTLY AGE 21+ & BACHELOR'S DEGREE REQUIRED) -->
-      <div class="card" style="border-left: 3px solid var(--accent-purple);">
-        <div class="card-title-row">
-          <div class="card-title"><span>🏛️</span> Post-Graduation Competitive Exams (After Degree)</div>
-          ${hasDegree && age >= 21 ? `<span class="pill-badge emerald">Eligible</span>` : `<span class="pill-badge amber">Locked</span>`}
-        </div>
-        <p style="font-size: 11px; color: var(--text-secondary); margin-bottom: 8px;">
-          Strictly requires an undergraduate Bachelor's Degree and minimum Age 21!
-        </p>
-        <div style="display: flex; flex-direction: column; gap: 6px;">
-          <!-- UPSC -->
-          <div class="list-row">
-            <div>
-              <h4>UPSC Civil Services Examination (IAS / IPS)</h4>
-              <p>Prelims ➔ Mains (9 Papers) ➔ Dholpur House Interview. Appoints IAS officers.</p>
-            </div>
-            ${G.edu.examScores.upsc ? `<span class="pill-badge purple">${G.edu.examScores.upsc}</span>` : `
-              <button class="btn btn-sm ${hasDegree && age >= 21 ? 'btn-primary' : ''} btn-take-exam" data-exam="upsc" ${!hasDegree || age < 21 ? 'disabled title="Requires Bachelor Degree & Age 21+"' : ''}>
-                ${hasDegree && age >= 21 ? 'Attempt UPSC (IAS)' : 'Locked (Degree & Age 21+)'}
-              </button>
-            `}
-          </div>
-
-          <!-- CAT -->
-          <div class="list-row">
-            <div>
-              <h4>CAT (Common Admission Test)</h4>
-              <p>Premier post-graduate entrance exam for MBA at IIM Ahmedabad & Bangalore.</p>
-            </div>
-            ${G.edu.examScores.cat ? `<span class="pill-badge emerald">${G.edu.examScores.cat}%ile</span>` : `
-              <button class="btn btn-sm ${hasDegree && age >= 21 ? 'btn-primary' : ''} btn-take-exam" data-exam="cat" ${!hasDegree || age < 21 ? 'disabled title="Requires Bachelor Degree & Age 21+"' : ''}>
-                ${hasDegree && age >= 21 ? 'Take CAT ($35)' : 'Locked (Degree & Age 21+)'}
+          <div style="display: flex; align-items: baseline; gap: 12px;">
+            ${G.edu.examScores.jee ? `<span class="mono-val" style="font-size: 15px;">${G.edu.examScores.jee}%ile</span>` : `
+              <button class="btn btn-outline btn-sm btn-take-exam" data-exam="jee" ${stream !== 'pcm' || age < 16 ? 'disabled' : ''}>
+                ${stream === 'pcm' && age >= 16 ? 'Take JEE ($40)' : 'Locked'}
               </button>
             `}
           </div>
         </div>
+
+        <!-- NEET -->
+        <div class="list-row">
+          <div style="flex: 1; min-width: 0;">
+            <div style="font-size: 15px;">NEET UG</div>
+            <div style="font-size: 13px; color: var(--text-tertiary); margin-top: 2px;">
+              For AIIMS New Delhi MBBS · Requires Science PCB
+            </div>
+          </div>
+          <div style="display: flex; align-items: baseline; gap: 12px;">
+            ${G.edu.examScores.neet ? `<span class="mono-val" style="font-size: 15px;">${G.edu.examScores.neet}/720</span>` : `
+              <button class="btn btn-outline btn-sm btn-take-exam" data-exam="neet" ${stream !== 'pcb' || age < 16 ? 'disabled' : ''}>
+                ${stream === 'pcb' && age >= 16 ? 'Take NEET ($30)' : 'Locked'}
+              </button>
+            `}
+          </div>
+        </div>
+
+        <!-- SAT -->
+        <div class="list-row">
+          <div style="flex: 1; min-width: 0;">
+            <div style="font-size: 15px;">SAT Reasoning Test</div>
+            <div style="font-size: 13px; color: var(--text-tertiary); margin-top: 2px;">
+              Standardized benchmark for US & UK global admissions
+            </div>
+          </div>
+          <div style="display: flex; align-items: baseline; gap: 12px;">
+            ${G.edu.examScores.sat ? `<span class="mono-val" style="font-size: 15px;">${G.edu.examScores.sat}/1600</span>` : `
+              <button class="btn btn-outline btn-sm btn-take-exam" data-exam="sat" ${age < 15 ? 'disabled' : ''}>
+                ${age >= 15 ? 'Take SAT ($110)' : 'Locked'}
+              </button>
+            `}
+          </div>
+        </div>
+
+        <!-- UPSC -->
+        <div class="list-row">
+          <div style="flex: 1; min-width: 0;">
+            <div style="font-size: 15px;">UPSC Civil Services Examination</div>
+            <div style="font-size: 13px; color: var(--text-tertiary); margin-top: 2px;">
+              IAS / IPS · Strictly requires Bachelor's Degree & Age 21+
+            </div>
+          </div>
+          <div style="display: flex; align-items: baseline; gap: 12px;">
+            ${G.edu.examScores.upsc ? `<span class="mono-val" style="font-size: 15px;">${G.edu.examScores.upsc}</span>` : `
+              <button class="btn btn-outline btn-sm btn-take-exam" data-exam="upsc" ${!hasDegree || age < 21 ? 'disabled' : ''}>
+                ${hasDegree && age >= 21 ? 'Attempt UPSC' : 'Locked'}
+              </button>
+            `}
+          </div>
+        </div>
+
+        <!-- CAT -->
+        <div class="list-row">
+          <div style="flex: 1; min-width: 0;">
+            <div style="font-size: 15px;">Common Admission Test (CAT)</div>
+            <div style="font-size: 13px; color: var(--text-tertiary); margin-top: 2px;">
+              For IIM Ahmedabad & Bangalore MBA · Strictly requires Degree & Age 21+
+            </div>
+          </div>
+          <div style="display: flex; align-items: baseline; gap: 12px;">
+            ${G.edu.examScores.cat ? `<span class="mono-val" style="font-size: 15px;">${G.edu.examScores.cat}%ile</span>` : `
+              <button class="btn btn-outline btn-sm btn-take-exam" data-exam="cat" ${!hasDegree || age < 21 ? 'disabled' : ''}>
+                ${hasDegree && age >= 21 ? 'Take CAT ($35)' : 'Locked'}
+              </button>
+            `}
+          </div>
+        </div>
       </div>
 
-      <!-- University Admissions (Domestic & Abroad) -->
+      <!-- University Admissions -->
       ${age >= 17 ? `
-        <div class="card">
-          <div class="card-title-row">
-            <div class="card-title"><span>🌍</span> Premier World Universities</div>
-          </div>
-          <div style="display: flex; flex-direction: column; gap: 8px;">
-            ${(c.undergradColleges || []).concat(COUNTRIES.usa.undergradColleges.slice(0, 3)).map(u => `
-              <div class="list-row">
-                <div>
-                  <h4>${u.name}</h4>
-                  <p>Prestige: ${u.prestige}/100 • $${u.tuitionUSD.toLocaleString()}/yr • Exam: ${u.examReq ? u.examReq.toUpperCase() : 'Merit'}</p>
+        <h2 class="section-heading">Global university admissions</h2>
+        <div>
+          ${(c.undergradColleges || []).concat(COUNTRIES.usa.undergradColleges.slice(0, 3)).map(u => `
+            <div class="list-row">
+              <div style="flex: 1; min-width: 0;">
+                <div style="font-size: 15px;">${u.name}</div>
+                <div style="font-size: 13px; color: var(--text-tertiary); margin-top: 2px;">
+                  Prestige ${u.prestige}/100 · $${u.tuitionUSD.toLocaleString()}/yr · Exam: ${u.examReq ? u.examReq.toUpperCase() : 'Merit'}
                 </div>
-                <button class="btn btn-sm btn-primary btn-apply-uni" data-uni="${u.id}">Apply</button>
               </div>
-            `).join("")}
-          </div>
+              <button class="btn btn-outline btn-sm btn-apply-uni" data-uni="${u.id}" type="button">Apply</button>
+            </div>
+          `).join("")}
         </div>
       ` : ''}
     `;
   }
 
   function renderCorpSubview() {
-    const j = G.career.job;
-    const age = G.char.age;
-    const actionsDone = G.yearActions.actionsDone || {};
-
-    if (age < 18) {
-      return `
-        <div class="childhood-lock-box">
-          <div class="childhood-lock-icon">💼</div>
-          <div class="childhood-lock-title">Corporate Workforce Restricted (Age 18+)</div>
-          <div class="childhood-lock-desc">
-            Labor statutes restrict corporate employment contracts to adults (Age 18+).<br>
-            Current Age: <strong>${age}</strong>. Focus on graduating high school and earning an undergraduate university degree!
-          </div>
-        </div>
-      `;
-    }
+    const job = G.career.job;
 
     return `
-      <div class="card">
-        <div class="card-title-row">
-          <div class="card-title"><span>💼</span> Current Corporate Position</div>
-          ${j ? `<span class="pill-badge emerald">${j.title}</span>` : `<span class="pill-badge">Unemployed</span>`}
-        </div>
-        ${j ? `
-          <div style="font-size: 12px; margin-bottom: 8px;">
-            <div>Base Salary: <strong>$${j.baseSalary.toLocaleString()}</strong> | Bonus: <strong>${Math.round(j.bonusPct * 100)}%</strong></div>
-            <div>Annual RSU Grants: <strong>$${j.stockUSD.toLocaleString()}</strong></div>
-            <div>Lifetime Career Earnings: <strong>$${G.career.lifetimeEarnings.toLocaleString()}</strong></div>
+      <h2 class="section-heading first">Current employment</h2>
+      ${job ? `
+        <div class="detail-grid">
+          <div>
+            <div class="detail-label">Position</div>
+            <div class="detail-val">${job.title}</div>
           </div>
-          <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-            <button class="btn btn-sm btn-primary" id="btnWorkOvertime">
-              <span>⏰ Work Overtime</span>
-              <span class="pill-badge purple" style="font-size: 8px;">⚡25 (${actionsDone["overtime"] || 0}/1)</span>
-            </button>
-            <button class="btn btn-sm btn-primary" id="btnExecNetworking">
-              <span>🤝 Exec Networking</span>
-              <span class="pill-badge purple" style="font-size: 8px;">⚡20 (${actionsDone["networking"] || 0}/1)</span>
-            </button>
-            <button class="btn btn-sm" id="btnResign" style="color: var(--accent-rose);">Resign</button>
+          <div>
+            <div class="detail-label">Base salary</div>
+            <div class="detail-val-mono">$${job.baseSalary.toLocaleString()}/yr</div>
           </div>
-        ` : `
-          <p style="font-size: 11px; color: var(--text-secondary);">You are currently not employed. Browse career openings below.</p>
-        `}
-      </div>
-
-      <div class="card">
-        <div class="card-title-row">
-          <div class="card-title"><span>🏢</span> Corporate Career Tracks</div>
+          <div>
+            <div class="detail-label">Annual bonus</div>
+            <div class="detail-val-mono">${Math.round(job.bonusPct * 100)}%</div>
+          </div>
+          <div>
+            <div class="detail-label">Equity compensation</div>
+            <div class="detail-val-mono">$${(job.stockUSD || 0).toLocaleString()}</div>
+          </div>
         </div>
-        <div style="display: flex; flex-direction: column; gap: 8px;">
-          ${CAREER_TRACKS.map(t => {
-            const entry = t.ladder[0];
-            const hasReqDegree = !t.requiredDegrees || t.requiredDegrees.includes("*") || G.edu.degrees.some(d => t.requiredDegrees.includes(d.major));
-            const hasSmarts = G.stats.smarts >= (t.minSmarts || 0);
-            const isEligible = hasReqDegree && hasSmarts;
 
-            return `
-              <div class="list-row" style="flex-direction: column; align-items: flex-start; gap: 4px;">
-                <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
-                  <div style="display: flex; align-items: center; gap: 6px;">
-                    <span style="font-size: 16px;">${t.icon}</span>
-                    <div>
-                      <h4 style="font-size: 12px;">${t.name}</h4>
-                      <p style="font-size: 10px;">Entry: ${entry.title} • $${entry.baseSalaryUSD.toLocaleString()}/yr</p>
-                    </div>
-                  </div>
-                  <button class="btn btn-sm ${isEligible ? 'btn-primary' : ''} btn-apply-job" data-track="${t.id}">
-                    Apply
-                  </button>
+        <div style="display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap;">
+          <button class="btn btn-outline btn-sm" id="btnWorkOvertime" type="button">Work overtime</button>
+          <button class="btn btn-outline btn-sm" id="btnExecNetworking" type="button">Executive networking</button>
+          <button class="btn btn-outline btn-sm" id="btnResign" type="button" style="color: var(--accent-rose);">Resign</button>
+        </div>
+      ` : `
+        <div class="surface-box" style="padding: 24px; text-align: center;">
+          <div style="font-size: 15px; font-weight: 500; margin-bottom: 6px;">Unemployed</div>
+          <p style="font-size: 13px; color: var(--text-secondary); margin: 0 auto 16px; max-width: 360px;">
+            Apply for positions across Technology, Investment Banking, Consulting, Big Law, and Medicine below.
+          </p>
+        </div>
+      `}
+
+      <h2 class="section-heading">Available corporate tracks</h2>
+      <div>
+        ${CAREER_TRACKS.map(track => {
+          const entry = track.ladder[0];
+          return `
+            <div class="list-row">
+              <div style="flex: 1; min-width: 0;">
+                <div style="font-size: 15px;">${track.name} · ${entry.title}</div>
+                <div style="font-size: 13px; color: var(--text-tertiary); margin-top: 2px;">
+                  Entry salary: $${entry.baseSalaryUSD.toLocaleString()}/yr · Requires: ${track.requiredDegrees ? track.requiredDegrees.join(", ") : 'Merit'}
                 </div>
-                <p style="font-size: 9px; color: var(--text-secondary);">
-                  Required Degrees: ${t.requiredDegrees ? t.requiredDegrees.join(", ") : "Any"} • Min Smarts: ${t.minSmarts || 0}
-                </p>
               </div>
-            `;
-          }).join("")}
-        </div>
+              <button class="btn btn-outline btn-sm btn-apply-job" data-track="${track.id}" type="button">Apply</button>
+            </div>
+          `;
+        }).join("")}
       </div>
     `;
   }
 
   function renderSpecialSubview() {
-    const age = G.char.age;
-    if (age < 16) {
-      return `
-        <div class="childhood-lock-box">
-          <div class="childhood-lock-icon">✨</div>
-          <div class="childhood-lock-title">Special Careers Restricted (Age 16+)</div>
-          <div class="childhood-lock-desc">
-            Talent agency representation and commercial publishing contracts require minimum Age 16.<br>
-            Current Age: <strong>${age}</strong>. Focus on school and childhood hobbies!
-          </div>
-        </div>
-      `;
-    }
-
-    const released = G.yearActions.specialRelease;
-
     return `
-      <div class="card">
-        <div class="card-title-row">
-          <div class="card-title"><span>🌟</span> Special Skill-Based Careers</div>
-          ${released ? `<span class="pill-badge amber">Released This Year</span>` : `<span class="pill-badge emerald">Ready</span>`}
+      <h2 class="section-heading first">Independent ventures & creative tracks</h2>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px;">
+        <div class="surface-box" style="padding: 18px 20px;">
+          <div style="font-size: 15px; font-weight: 500; margin-bottom: 4px;">Indie Game Studio</div>
+          <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 12px;">
+            Develop and publish independent titles on Steam. Revenue scales with programming expertise and critical reception.
+          </p>
+          <button class="btn btn-outline btn-sm" id="btnSpecialIndie" type="button">Publish game ($100)</button>
         </div>
-        <p style="font-size: 11px; color: var(--text-secondary); margin-bottom: 8px;">
-          Produce commercial creative works, viral media, or athletic contracts. Each project consumes 30 Energy and is limited to 1 launch per year.
-        </p>
-        <div style="display: flex; flex-direction: column; gap: 8px;">
-          <div class="list-row">
-            <div>
-              <h4>🎮 Indie Game Developer</h4>
-              <p>Code & ship on Steam ($100 fee). Earn royalties.</p>
-            </div>
-            <button class="btn btn-sm btn-primary" id="btnSpecialIndie" ${released ? 'disabled' : ''}>Ship Game (⚡30)</button>
-          </div>
-          <div class="list-row">
-            <div>
-              <h4>📹 Content Creator / YouTuber</h4>
-              <p>Upload video to algorithm. Earn AdSense revenue.</p>
-            </div>
-            <button class="btn btn-sm btn-primary" id="btnSpecialCreator" ${released ? 'disabled' : ''}>Publish Video (⚡30)</button>
-          </div>
-          <div class="list-row">
-            <div>
-              <h4>👠 Runway Fashion Model</h4>
-              <p>Paris/Milan fashion week runway (Requires 70+ Looks).</p>
-            </div>
-            <button class="btn btn-sm btn-primary" id="btnSpecialModel" ${released ? 'disabled' : ''}>Walk Runway (⚡30)</button>
-          </div>
-          <div class="list-row">
-            <div>
-              <h4>🎵 Music Artist / Producer</h4>
-              <p>Drop a studio single on Spotify & Apple Music.</p>
-            </div>
-            <button class="btn btn-sm btn-primary" id="btnSpecialMusician" ${released ? 'disabled' : ''}>Drop Single (⚡30)</button>
-          </div>
-          <div class="list-row">
-            <div>
-              <h4>🏆 Professional Athlete</h4>
-              <p>Sign sports championship franchise contract.</p>
-            </div>
-            <button class="btn btn-sm btn-primary" id="btnSpecialAthlete" ${released ? 'disabled' : ''}>Sign Deal (⚡30)</button>
-          </div>
-          <div class="list-row">
-            <div>
-              <h4>📖 Novelist / Author</h4>
-              <p>Publish literary novel for publishing advances.</p>
-            </div>
-            <button class="btn btn-sm btn-primary" id="btnSpecialAuthor" ${released ? 'disabled' : ''}>Publish Book (⚡30)</button>
-          </div>
+
+        <div class="surface-box" style="padding: 18px 20px;">
+          <div style="font-size: 15px; font-weight: 500; margin-bottom: 4px;">Content & Media</div>
+          <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 12px;">
+            Produce videos and livestreams. Monetize via digital advertising, sponsorship agreements, and merchandise.
+          </p>
+          <button class="btn btn-outline btn-sm" id="btnSpecialCreator" type="button">Publish content</button>
+        </div>
+
+        <div class="surface-box" style="padding: 18px 20px;">
+          <div style="font-size: 15px; font-weight: 500; margin-bottom: 4px;">Fashion & Modeling</div>
+          <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 12px;">
+            High-fashion runway appearances and luxury brand ambassador campaigns. Requires exceptional aesthetic presence.
+          </p>
+          <button class="btn btn-outline btn-sm" id="btnSpecialModel" type="button">Runway booking</button>
+        </div>
+
+        <div class="surface-box" style="padding: 18px 20px;">
+          <div style="font-size: 15px; font-weight: 500; margin-bottom: 4px;">Music Recording</div>
+          <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 12px;">
+            Compose, record, and release studio singles across global digital streaming platforms.
+          </p>
+          <button class="btn btn-outline btn-sm" id="btnSpecialMusician" type="button">Release record</button>
+        </div>
+
+        <div class="surface-box" style="padding: 18px 20px;">
+          <div style="font-size: 15px; font-weight: 500; margin-bottom: 4px;">Professional Athletics</div>
+          <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 12px;">
+            Compete in elite franchise athletic leagues with multi-year performance contracts.
+          </p>
+          <button class="btn btn-outline btn-sm" id="btnSpecialAthlete" type="button">Sign contract</button>
+        </div>
+
+        <div class="surface-box" style="padding: 18px 20px;">
+          <div style="font-size: 15px; font-weight: 500; margin-bottom: 4px;">Author & Publishing</div>
+          <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 12px;">
+            Author literary works and commercial non-fiction for publishing houses and royalties.
+          </p>
+          <button class="btn btn-outline btn-sm" id="btnSpecialAuthor" type="button">Publish book</button>
         </div>
       </div>
     `;
@@ -6020,11 +5728,11 @@ const BUSINESS_CATALOG = [
 
         if (exKey === "jee") {
           if (G.childhood.streamChoice !== "pcm") {
-            toast("JEE strictly requires the Science PCM (Physics, Chemistry, Math) stream!", "error");
+            toast("JEE strictly requires the Science PCM stream.", "error");
             return;
           }
           if (G.char.age < 16) {
-            toast("JEE is taken during or after Class 12 (Age 17+)!", "error");
+            toast("JEE is taken during or after Class 12.", "error");
             return;
           }
           if (G.fin.cash < ex.costUSD) { toast("Insufficient cash for exam fee ($40).", "error"); return; }
@@ -6032,14 +5740,14 @@ const BUSINESS_CATALOG = [
           const coachingBoost = G.childhood.coachingChoice?.includes("Kota") ? 4.0 : 0;
           const pct = Math.min(99.98, Math.round((72 + (G.stats.smarts / 100) * 27 + coachingBoost + (Math.random() * 0.8)) * 100) / 100);
           G.edu.examScores.jee = pct;
-          toast(`JEE Advanced Result: ${pct}%ile! ${pct >= 95 ? 'Eligible for IIT Bombay / Delhi!' : 'Eligible for NITs.'}`, "celebrate");
+          toast(`JEE Advanced Result: ${pct}%ile. ${pct >= 95 ? 'Eligible for IIT Bombay and IIT Delhi.' : 'Eligible for NITs.'}`, "celebrate");
         } else if (exKey === "neet") {
           if (G.childhood.streamChoice !== "pcb") {
-            toast("NEET UG strictly requires the Science PCB (Physics, Chemistry, Biology) stream!", "error");
+            toast("NEET UG strictly requires the Science PCB stream.", "error");
             return;
           }
           if (G.char.age < 16) {
-            toast("NEET is taken during or after Class 12 (Age 17+)!", "error");
+            toast("NEET is taken during or after Class 12.", "error");
             return;
           }
           if (G.fin.cash < ex.costUSD) { toast("Insufficient cash for exam fee ($30).", "error"); return; }
@@ -6047,30 +5755,30 @@ const BUSINESS_CATALOG = [
           const coachingBoost = G.childhood.coachingChoice?.includes("Aakash") ? 45 : 0;
           const score = Math.min(720, Math.round(450 + (G.stats.smarts / 100) * 240 + coachingBoost + (Math.random() * 15)));
           G.edu.examScores.neet = score;
-          toast(`NEET UG Score: ${score}/720! ${score >= 650 ? 'Eligible for AIIMS New Delhi MBBS!' : 'Eligible for State Medical Colleges.'}`, "celebrate");
+          toast(`NEET UG Score: ${score}/720. ${score >= 650 ? 'Eligible for AIIMS New Delhi MBBS.' : 'Eligible for State Medical Colleges.'}`, "celebrate");
         } else if (exKey === "sat") {
           if (G.char.age < 15) {
-            toast("SAT is taken during high school (Age 15+)!", "error");
+            toast("SAT is taken during high school.", "error");
             return;
           }
           if (G.fin.cash < ex.costUSD) { toast("Insufficient cash for exam fee ($110).", "error"); return; }
           G.fin.cash -= ex.costUSD;
           const sat = Math.min(1600, Math.round(1020 + (G.stats.smarts / 100) * 560 + (Math.random() * 15)));
           G.edu.examScores.sat = sat;
-          toast(`SAT Score: ${sat}/1600! ${sat >= 1500 ? 'Eligible for Harvard, MIT, Stanford, Oxford!' : 'Eligible for State Universities.'}`, "celebrate");
+          toast(`SAT Score: ${sat}/1600. ${sat >= 1500 ? 'Competitive for global admissions.' : 'Standard competitive benchmark.'}`, "celebrate");
         } else if (exKey === "upsc") {
           startUPSCProcess();
           return;
         } else if (exKey === "cat") {
           if (!hasDegree || G.char.age < 21) {
-            toast("CAT strictly requires a completed Bachelor's Degree and minimum age 21!", "error");
+            toast("CAT strictly requires a completed Bachelor's Degree and minimum age 21.", "error");
             return;
           }
           if (G.fin.cash < ex.costUSD) { toast("Insufficient cash for exam fee ($35).", "error"); return; }
           G.fin.cash -= ex.costUSD;
           const cat = Math.min(99.95, Math.round((82 + (G.stats.smarts / 100) * 17.8) * 100) / 100);
           G.edu.examScores.cat = cat;
-          toast(`CAT Score: ${cat}%ile! Admitted to IIM Ahmedabad & Bangalore!`, "celebrate");
+          toast(`CAT Score: ${cat}%ile. Admitted to IIM Ahmedabad & Bangalore.`, "celebrate");
         }
         updateHeader();
         renderCurrentTab();
@@ -6086,7 +5794,7 @@ const BUSINESS_CATALOG = [
         if (!uni) return;
 
         if (G.char.age < 17) {
-          toast("You must graduate high school (Age 17+) before college!", "error");
+          toast("You must graduate high school before college enrollment.", "error");
           return;
         }
 
@@ -6111,9 +5819,9 @@ const BUSINESS_CATALOG = [
             totalYears: uni.majors[0].includes("MBBS") ? 5 : 4,
             prestige: uni.prestige
           };
-          toast(`🎉 ADMITTED! Welcome to ${uni.name} studying ${uni.majors[0]}!`, "celebrate");
+          toast(`Admitted: welcome to ${uni.name} studying ${uni.majors[0]}.`, "celebrate");
         } else {
-          toast(`Application rejected by ${uni.name}. Boost your exam scores!`, "error");
+          toast(`Application rejected by ${uni.name}. Boost competitive exam scores.`, "error");
         }
         updateHeader();
         renderCurrentTab();
@@ -6128,25 +5836,25 @@ const BUSINESS_CATALOG = [
         if (!track) return;
 
         if (G.char.age < 18) {
-          toast("Must be at least 18 to enter corporate workforce!", "error");
+          toast("Must be at least 18 to enter corporate workforce.", "error");
           return;
         }
 
         if (track.requiresExam === "upsc" && !G.edu.examScores.upsc) {
-          toast("Must clear the UPSC Civil Services Examination first!", "error");
+          toast("Must clear the UPSC Civil Services Examination first.", "error");
           return;
         }
 
         if (track.requiredDegrees && !track.requiredDegrees.includes("*")) {
           const matchingDegree = G.edu.degrees.some(d => track.requiredDegrees.includes(d.major));
           if (!matchingDegree) {
-            toast(`Requires degree in: ${track.requiredDegrees.join(" or ")}!`, "error");
+            toast(`Requires degree in: ${track.requiredDegrees.join(" or ")}.`, "error");
             return;
           }
         }
 
         if (track.minSmarts && G.stats.smarts < track.minSmarts) {
-          toast(`Requires at least ${track.minSmarts} Smarts to pass interviews!`, "error");
+          toast(`Requires at least ${track.minSmarts} Smarts to pass technical interviews.`, "error");
           return;
         }
 
@@ -6158,7 +5866,7 @@ const BUSINESS_CATALOG = [
           bonusPct: entry.bonusPct,
           stockUSD: entry.stockUSD
         };
-        toast(`Hired as ${entry.title}! ($${entry.baseSalaryUSD.toLocaleString()}/yr)`, "celebrate");
+        toast(`Hired as ${entry.title} ($${entry.baseSalaryUSD.toLocaleString()}/yr).`, "celebrate");
         updateHeader();
         renderCurrentTab();
       });
@@ -6169,7 +5877,7 @@ const BUSINESS_CATALOG = [
       if (!consumeEnergy(25, "overtime", 1)) return;
       G.stats.prestige = Math.min(100, G.stats.prestige + 4);
       G.stats.happiness = Math.max(10, G.stats.happiness - 3);
-      toast("Burned the midnight oil! Executive leadership noted your dedication! (+Prestige)", "celebrate");
+      toast("Burned the midnight oil. Dedication noted by executive leadership (+Prestige)", "celebrate");
       updateHeader();
       renderCurrentTab();
     });
@@ -6177,7 +5885,7 @@ const BUSINESS_CATALOG = [
     document.getElementById("btnExecNetworking")?.addEventListener("click", () => {
       if (!consumeEnergy(20, "networking", 1)) return;
       G.stats.prestige = Math.min(100, G.stats.prestige + 5);
-      toast("Attended private executive dinner! Expanded high-level network.", "celebrate");
+      toast("Attended private executive dinner. Expanded professional network.", "celebrate");
       updateHeader();
       renderCurrentTab();
     });
@@ -6192,82 +5900,82 @@ const BUSINESS_CATALOG = [
     // Special careers
     document.getElementById("btnSpecialIndie")?.addEventListener("click", () => {
       if (G.char.age < 16) { toast("Requires age 16+.", "error"); return; }
-      if (G.yearActions.specialRelease) { toast("You already released a project this year! Age up to release another.", "error"); return; }
-      if (G.stats.energy < 30) { toast("Requires 30% Energy!", "error"); return; }
+      if (G.yearActions.specialRelease) { toast("Annual release limit reached. Age up to release another.", "error"); return; }
+      if (G.stats.energy < 30) { toast("Requires 30% Energy.", "error"); return; }
       if (G.fin.cash < 100) { toast("Requires $100 Steam publishing fee.", "error"); return; }
       G.stats.energy -= 30;
       G.yearActions.specialRelease = true;
       G.fin.cash -= 100;
       const sales = Math.round(50000 + (G.stats.smarts * 800));
       G.fin.cash += sales;
-      toast(`🎮 Steam Game launched! 96% Positive! Earned $${sales.toLocaleString()} royalties!`, "celebrate");
+      toast(`Steam game launched. Earned $${sales.toLocaleString()} royalties.`, "celebrate");
       updateHeader();
       renderCurrentTab();
     });
 
     document.getElementById("btnSpecialCreator")?.addEventListener("click", () => {
       if (G.char.age < 16) { toast("Requires age 16+.", "error"); return; }
-      if (G.yearActions.specialRelease) { toast("You already released a project this year! Age up to release another.", "error"); return; }
-      if (G.stats.energy < 30) { toast("Requires 30% Energy!", "error"); return; }
+      if (G.yearActions.specialRelease) { toast("Annual release limit reached. Age up to release another.", "error"); return; }
+      if (G.stats.energy < 30) { toast("Requires 30% Energy.", "error"); return; }
       G.stats.energy -= 30;
       G.yearActions.specialRelease = true;
       const subs = 25000 + Math.round(G.stats.looks * 500);
       const ad = Math.round(subs * 0.7);
       G.fin.cash += ad;
-      toast(`📹 YouTube video went viral! Gained ${subs.toLocaleString()} subscribers and earned $${ad.toLocaleString()} AdSense!`, "celebrate");
+      toast(`Video published. Gained ${subs.toLocaleString()} subscribers and earned $${ad.toLocaleString()}.`, "celebrate");
       updateHeader();
       renderCurrentTab();
     });
 
     document.getElementById("btnSpecialModel")?.addEventListener("click", () => {
       if (G.char.age < 16) { toast("Requires age 16+.", "error"); return; }
-      if (G.yearActions.specialRelease) { toast("You already released a project this year! Age up to release another.", "error"); return; }
-      if (G.stats.energy < 30) { toast("Requires 30% Energy!", "error"); return; }
-      if (G.stats.looks < 70) { toast("Requires 70+ Looks!", "error"); return; }
+      if (G.yearActions.specialRelease) { toast("Annual release limit reached. Age up to release another.", "error"); return; }
+      if (G.stats.energy < 30) { toast("Requires 30% Energy.", "error"); return; }
+      if (G.stats.looks < 70) { toast("Requires 70+ Looks.", "error"); return; }
       G.stats.energy -= 30;
       G.yearActions.specialRelease = true;
       const pay = Math.round(G.stats.looks * 400);
       G.fin.cash += pay;
-      toast(`👠 Walked Paris Haute Couture runway! Earned $${pay.toLocaleString()}!`, "celebrate");
+      toast(`Walked Paris runway. Earned $${pay.toLocaleString()}.`, "celebrate");
       updateHeader();
       renderCurrentTab();
     });
 
     document.getElementById("btnSpecialMusician")?.addEventListener("click", () => {
       if (G.char.age < 16) { toast("Requires age 16+.", "error"); return; }
-      if (G.yearActions.specialRelease) { toast("You already released a project this year! Age up to release another.", "error"); return; }
-      if (G.stats.energy < 30) { toast("Requires 30% Energy!", "error"); return; }
+      if (G.yearActions.specialRelease) { toast("Annual release limit reached. Age up to release another.", "error"); return; }
+      if (G.stats.energy < 30) { toast("Requires 30% Energy.", "error"); return; }
       G.stats.energy -= 30;
       G.yearActions.specialRelease = true;
       const roy = 35000 + Math.round(Math.random() * 40000);
       G.fin.cash += roy;
-      toast(`🎵 Single charted on Billboard! Collected $${roy.toLocaleString()} streaming royalties!`, "celebrate");
+      toast(`Single charted on streaming services. Collected $${roy.toLocaleString()} royalties.`, "celebrate");
       updateHeader();
       renderCurrentTab();
     });
 
     document.getElementById("btnSpecialAthlete")?.addEventListener("click", () => {
       if (G.char.age < 16) { toast("Requires age 16+.", "error"); return; }
-      if (G.yearActions.specialRelease) { toast("You already released a project this year! Age up to release another.", "error"); return; }
-      if (G.stats.energy < 30) { toast("Requires 30% Energy!", "error"); return; }
+      if (G.yearActions.specialRelease) { toast("Annual release limit reached. Age up to release another.", "error"); return; }
+      if (G.stats.energy < 30) { toast("Requires 30% Energy.", "error"); return; }
       G.stats.energy -= 30;
       G.yearActions.specialRelease = true;
       const sal = 80000;
       G.fin.cash += sal;
-      toast(`🏆 Signed franchise sports contract! Earned $${sal.toLocaleString()} salary!`, "celebrate");
+      toast(`Signed franchise sports contract. Earned $${sal.toLocaleString()} salary.`, "celebrate");
       updateHeader();
       renderCurrentTab();
     });
 
     document.getElementById("btnSpecialAuthor")?.addEventListener("click", () => {
       if (G.char.age < 16) { toast("Requires age 16+.", "error"); return; }
-      if (G.yearActions.specialRelease) { toast("You already released a project this year! Age up to release another.", "error"); return; }
-      if (G.stats.energy < 30) { toast("Requires 30% Energy!", "error"); return; }
+      if (G.yearActions.specialRelease) { toast("Annual release limit reached. Age up to release another.", "error"); return; }
+      if (G.stats.energy < 30) { toast("Requires 30% Energy.", "error"); return; }
       G.stats.energy -= 30;
       G.yearActions.specialRelease = true;
       const adv = 20000 + (G.stats.smarts * 300);
       G.fin.cash += adv;
-      toast(`📖 Novel hit the New York Times Bestseller list! Earned $${adv.toLocaleString()}!`, "celebrate");
+      toast(`Novel published. Earned $${adv.toLocaleString()} advance.`, "celebrate");
       updateHeader();
       renderCurrentTab();
     });
@@ -6283,18 +5991,28 @@ const BUSINESS_CATALOG = [
     const age = G.char.age;
     if (age < 18) {
       vc.innerHTML = `
-        <div class="childhood-lock-box">
-          <div class="childhood-lock-icon">💼</div>
-          <div class="childhood-lock-title">Commercial Enterprise Locked (Age 18+)</div>
-          <div class="childhood-lock-desc">
-            Under commercial corporate law, founding a registered company, managing corporate treasury, and executing legal contracts requires adulthood (Age 18+).<br><br>
-            <strong>Current Age: ${age}</strong> (${18 - age} years until legal incorporation eligibility).<br>
-            During childhood, focus on school, building high Smarts, and saving your pocket money!
-          </div>
-          <div style="background: var(--bg-subtle); padding: 12px; border-radius: 8px; font-size: 11px; text-align: left; margin-top: 10px;">
-            <div style="font-weight: 700; margin-bottom: 4px; color: var(--accent-emerald);">💰 Childhood Piggy Bank:</div>
-            <div>Wallet Cash: <strong>$${G.fin.cash.toLocaleString()}</strong></div>
-            <div>Family Wealth Tier: <strong>${G.char.familyWealth.replace("_", " ").toUpperCase()}</strong></div>
+        <div class="surface-box" style="text-align: center; padding: 36px 24px;">
+          <div style="font-size: 16px; font-weight: 500; margin-bottom: 8px;">Commercial enterprise locked</div>
+          <p style="font-size: 14px; color: var(--text-secondary); line-height: 1.55; max-width: 440px; margin: 0 auto 20px;">
+            Under commercial corporate law, founding a registered company, managing corporate treasury, and executing legal contracts requires adulthood (Age 18+).
+          </p>
+          <div class="detail-grid" style="max-width: 340px; margin: 0 auto; text-align: left;">
+            <div>
+              <div class="detail-label">Current age</div>
+              <div class="detail-val-mono">${age}</div>
+            </div>
+            <div>
+              <div class="detail-label">Years to incorporation</div>
+              <div class="detail-val-mono">${18 - age}</div>
+            </div>
+            <div>
+              <div class="detail-label">Childhood cash</div>
+              <div class="detail-val-mono">$${G.fin.cash.toLocaleString()}</div>
+            </div>
+            <div>
+              <div class="detail-label">Family wealth</div>
+              <div class="detail-val" style="text-transform: capitalize;">${G.char.familyWealth.replace("_", " ")}</div>
+            </div>
           </div>
         </div>
       `;
@@ -6306,807 +6024,542 @@ const BUSINESS_CATALOG = [
     const currentBiz = G.biz[activeBizIndex];
 
     const subNavHtml = `
-      <div class="subtabs-bar" style="margin-bottom: 12px;">
-        <button class="subtab-btn ${bizSubTab === 'enterprises' ? 'active' : ''} btn-biz-subtab" data-tab="enterprises">🏢 Companies (${G.biz.length})</button>
-        <button class="subtab-btn ${bizSubTab === 'catalog' ? 'active' : ''} btn-biz-subtab" data-tab="catalog">🌐 Catalog (120)</button>
+      <div class="subtabs-bar">
+        <button class="subtab-btn ${bizSubTab === 'enterprises' ? 'active' : ''} btn-biz-subtab" data-tab="enterprises" type="button">Portfolio (${G.biz.length})</button>
+        <button class="subtab-btn ${bizSubTab === 'catalog' ? 'active' : ''} btn-biz-subtab" data-tab="catalog" type="button">Catalog (120)</button>
         ${currentBiz ? `
-          <button class="subtab-btn ${bizSubTab === 'financials' ? 'active' : ''} btn-biz-subtab" data-tab="financials">📊 Financials</button>
-          <button class="subtab-btn ${bizSubTab === 'fundraising' ? 'active' : ''} btn-biz-subtab" data-tab="fundraising">🚀 Funding</button>
-          <button class="subtab-btn ${bizSubTab === 'boardroom' ? 'active' : ''} btn-biz-subtab" data-tab="boardroom">🏛️ Board</button>
-          <button class="subtab-btn ${bizSubTab === 'org' ? 'active' : ''} btn-biz-subtab" data-tab="org">👥 Org & AU</button>
+          <button class="subtab-btn ${bizSubTab === 'financials' ? 'active' : ''} btn-biz-subtab" data-tab="financials" type="button">Financials</button>
+          <button class="subtab-btn ${bizSubTab === 'fundraising' ? 'active' : ''} btn-biz-subtab" data-tab="fundraising" type="button">Funding</button>
+          <button class="subtab-btn ${bizSubTab === 'boardroom' ? 'active' : ''} btn-biz-subtab" data-tab="boardroom" type="button">Board</button>
+          <button class="subtab-btn ${bizSubTab === 'org' ? 'active' : ''} btn-biz-subtab" data-tab="org" type="button">Org</button>
         ` : ''}
       </div>
     `;
 
     let bodyHtml = "";
 
-    // 1. ENTERPRISES COCKPIT
+    // 1. ENTERPRISES / PORTFOLIO SUBTAB
     if (bizSubTab === "enterprises") {
       if (G.biz.length === 0) {
         bodyHtml = `
-          <div class="card" style="text-align: center; padding: 24px;">
-            <div style="font-size: 36px; margin-bottom: 8px;">🏭</div>
-            <h3 style="font-size: 15px; margin-bottom: 6px;">No Active Operating Companies</h3>
-            <p style="font-size: 11px; color: var(--text-secondary); margin-bottom: 16px;">
-              Incorporate a venture from the 120-business catalog across 12 sectors and capital tiers A ($500) to G ($1B+).
+          <div class="surface-box" style="text-align: center; padding: 36px 24px;">
+            <div style="font-size: 16px; font-weight: 500; margin-bottom: 8px;">No operating companies</div>
+            <p style="font-size: 14px; color: var(--text-secondary); line-height: 1.55; max-width: 420px; margin: 0 auto 20px;">
+              Incorporate a venture from the 120-business catalog spanning 12 sectors and capital tiers from $500 to $2B+.
             </p>
-            <button class="btn btn-primary btn-sm btn-go-catalog">Browse 120 Businesses ➔</button>
+            <button class="btn btn-primary btn-go-catalog" type="button">Browse catalog</button>
           </div>
         `;
       } else {
         bodyHtml = `
           ${G.biz.length > 1 ? `
-            <div style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 8px;">
+            <div style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 12px;">
               ${G.biz.map((b, i) => `
-                <button class="btn btn-sm ${i === activeBizIndex ? 'btn-primary' : ''} btn-switch-biz" data-idx="${i}" style="white-space: nowrap; font-size: 11px;">
-                  ${b.icon} ${b.name}
+                <button class="subtab-btn ${i === activeBizIndex ? 'active' : ''} btn-switch-biz" data-idx="${i}" type="button" style="font-size: 12px; padding: 4px 10px;">
+                  ${b.name}
                 </button>
               `).join("")}
             </div>
           ` : ''}
 
-          <div class="card" style="border-left: 3px solid var(--accent-emerald);">
-            <div class="card-title-row">
-              <div class="card-title">
-                <span>${currentBiz.icon}</span> ${currentBiz.name}
-                <span class="pill-badge blue" style="font-size: 8px; margin-left: 6px;">Tier ${currentBiz.capitalTier || 'C'}</span>
-                <span class="pill-badge emerald" style="font-size: 8px;">${(currentBiz.org?.scaleTier || 'micro').toUpperCase()}</span>
-              </div>
-              <div style="font-size: 13px; font-weight: 800; color: var(--accent-emerald);">
-                $${(currentBiz.valuationUSD || currentBiz.valuation || 100000).toLocaleString()}
-              </div>
+          <h2 class="section-heading first">${currentBiz.name}</h2>
+          <div class="detail-grid">
+            <div>
+              <div class="detail-label">Valuation</div>
+              <div class="detail-val-mono">$${(currentBiz.valuationUSD || currentBiz.valuation || 100000).toLocaleString()}</div>
             </div>
-
-            ${currentBiz.inRestructuring ? `
-              <div style="background: rgba(239, 68, 68, 0.15); border: 1px solid var(--accent-rose); border-radius: 8px; padding: 8px; font-size: 10px; color: #fca5a5; margin-bottom: 10px;">
-                🚨 <strong>Chapter 11 Restructuring Notice:</strong> Operating cash exhausted. Liquidate assets, raise rescue debt, or inject personal cash to avert liquidation!
-              </div>
-            ` : ''}
-
-            ${currentBiz.board?.coupThreat ? `
-              <div style="background: rgba(245, 158, 11, 0.15); border: 1px solid var(--accent-amber); border-radius: 8px; padding: 8px; font-size: 10px; color: #fde68a; margin-bottom: 10px;">
-                ⚠️ <strong>Boardroom Coup Imminent!</strong> ${currentBiz.board.coupReason}
-                <div style="margin-top: 6px;">
-                  <button class="btn btn-sm btn-primary btn-goto-board" style="background: var(--accent-amber); color: #000; font-weight: 700;">Open Boardroom Chamber ➔</button>
-                </div>
-              </div>
-            ` : ''}
-
-            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; background: var(--bg-subtle); padding: 8px; border-radius: 8px; font-size: 10px; margin-bottom: 10px; text-align: center;">
-              <div>
-                <div style="color: var(--text-secondary);">Revenue</div>
-                <div style="font-weight: 700;">$${(currentBiz.annualRevenueUSD || currentBiz.annualRev || 0).toLocaleString()}</div>
-              </div>
-              <div>
-                <div style="color: var(--text-secondary);">Net Profit</div>
-                <div style="font-weight: 700; color: ${(currentBiz.netProfitUSD || currentBiz.profit || 0) >= 0 ? 'var(--accent-emerald)' : 'var(--accent-rose)'};">
-                  $${(currentBiz.netProfitUSD || currentBiz.profit || 0).toLocaleString()}
-                </div>
-              </div>
-              <div>
-                <div style="color: var(--text-secondary);">Treasury Cash</div>
-                <div style="font-weight: 700; color: ${(currentBiz.treasuryUSD || currentBiz.treasury || 0) >= 0 ? '#60a5fa' : 'var(--accent-rose)'};">
-                  $${(currentBiz.treasuryUSD || currentBiz.treasury || 0).toLocaleString()}
-                </div>
-              </div>
+            <div>
+              <div class="detail-label">Annual revenue</div>
+              <div class="detail-val-mono">$${(currentBiz.annualRevenueUSD || currentBiz.revenue || 0).toLocaleString()}</div>
             </div>
-
-            <div style="margin-bottom: 12px;">
-              <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 4px;">
-                ⚡ Live Economic Engine Telemetry (${(currentBiz.boundEngines || []).length} Sub-Engines)
-              </div>
-              <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px;">
-                ${Object.entries(currentBiz.kpis || {}).map(([key, val]) => `
-                  <div style="background: var(--bg-subtle); padding: 6px 8px; border-radius: 6px; font-size: 10px; display: flex; justify-content: space-between;">
-                    <span style="color: var(--text-secondary);">${key}:</span>
-                    <strong style="color: #fff;">${val}</strong>
-                  </div>
-                `).join("")}
-              </div>
+            <div>
+              <div class="detail-label">Net income</div>
+              <div class="detail-val-mono">$${(currentBiz.netProfitUSD || currentBiz.netProfit || 0).toLocaleString()}</div>
             </div>
-
-            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-              <button class="btn btn-sm btn-biz-expand" data-idx="${activeBizIndex}">
-                📈 Expand Scale ($${Math.round((currentBiz.valuationUSD || currentBiz.valuation || 100000) * 0.08).toLocaleString()})
-              </button>
-              <button class="btn btn-sm btn-biz-dividend" data-idx="${activeBizIndex}">
-                💰 Dividend ($${Math.round(Math.max(0, currentBiz.treasuryUSD || currentBiz.treasury || 0) * 0.3).toLocaleString()})
-              </button>
-              <button class="btn btn-sm btn-biz-inject" data-idx="${activeBizIndex}">
-                💵 Inject Cash
-              </button>
-              <button class="btn btn-sm btn-biz-sell" data-idx="${activeBizIndex}" style="color: var(--accent-rose);">
-                🤝 M&A Exit
-              </button>
+            <div>
+              <div class="detail-label">Treasury cash</div>
+              <div class="detail-val-mono">$${(currentBiz.treasuryUSD || currentBiz.treasury || 0).toLocaleString()}</div>
             </div>
+            <div>
+              <div class="detail-label">Founder equity</div>
+              <div class="detail-val-mono">${currentBiz.founderEquityPct || 100}%</div>
+            </div>
+            <div>
+              <div class="detail-label">Scale tier</div>
+              <div class="detail-val" style="text-transform: capitalize;">Tier ${currentBiz.capitalTier || 'C'} · ${currentBiz.org?.scaleTier || 'micro'}</div>
+            </div>
+          </div>
+
+          <h2 class="section-heading">Corporate operations</h2>
+          <div class="actions-grid">
+            <button class="action-btn" id="btnBizPrice" type="button">
+              <div class="action-btn-left">
+                <span class="material-symbols-outlined" style="font-size: 18px; color: var(--text-tertiary);">tune</span>
+                <span class="action-btn-label">Adjust pricing</span>
+              </div>
+              <span class="action-btn-meta">${((currentBiz.priceMultiplier || 1.0) * 100).toFixed(0)}% base</span>
+            </button>
+            <button class="action-btn" id="btnBizMarketing" type="button">
+              <div class="action-btn-left">
+                <span class="material-symbols-outlined" style="font-size: 18px; color: var(--text-tertiary);">campaign</span>
+                <span class="action-btn-label">Marketing blitz</span>
+              </div>
+              <span class="action-btn-meta">$${Math.round((currentBiz.valuationUSD || 100000) * 0.05).toLocaleString()}</span>
+            </button>
+            <button class="action-btn" id="btnBizRD" type="button">
+              <div class="action-btn-left">
+                <span class="material-symbols-outlined" style="font-size: 18px; color: var(--text-tertiary);">biotech</span>
+                <span class="action-btn-label">R&D initiative</span>
+              </div>
+              <span class="action-btn-meta">$${Math.round((currentBiz.valuationUSD || 100000) * 0.08).toLocaleString()}</span>
+            </button>
+            <button class="action-btn" id="btnBizDividend" type="button">
+              <div class="action-btn-left">
+                <span class="material-symbols-outlined" style="font-size: 18px; color: var(--text-tertiary);">payments</span>
+                <span class="action-btn-label">Pay dividend</span>
+              </div>
+              <span class="action-btn-meta">Founder distribution</span>
+            </button>
+          </div>
+
+          <h2 class="section-heading">Exit transactions</h2>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button class="btn btn-outline btn-sm" id="btnBizIPO" type="button">Public listing (IPO)</button>
+            <button class="btn btn-outline btn-sm" id="btnBizSell" type="button" style="color: var(--accent-rose);">Accept buyout</button>
           </div>
         `;
       }
-    }
-
-    // 2. CATALOG SUBTAB (120 Businesses)
-    else if (bizSubTab === "catalog") {
-      const sectors = ["all", ...BUSINESS_SECTORS.map(s => s.name)];
-      const tiers = ["all", "A", "B", "C", "D", "E", "F", "G"];
-
-      const filteredCatalog = BUSINESS_CATALOG.filter(b => {
-        const matchSec = catalogSectorFilter === "all" || b.sector === catalogSectorFilter;
-        const matchTier = catalogTierFilter === "all" || b.capitalTier === catalogTierFilter;
-        return matchSec && matchTier;
+    } else if (bizSubTab === "catalog") {
+      // 2. CATALOG SUBTAB
+      const sectors = Object.keys(BUSINESS_SECTORS);
+      const filtered = BUSINESS_CATALOG.filter(b => {
+        if (catalogSectorFilter !== "all" && b.sector !== catalogSectorFilter) return false;
+        if (catalogTierFilter !== "all" && b.tier !== catalogTierFilter) return false;
+        return true;
       });
 
       bodyHtml = `
-        <div class="card">
-          <div class="card-title-row">
-            <div class="card-title"><span>🌐</span> 120-Business Catalog</div>
-            <span style="font-size: 11px; color: var(--text-secondary);">${filteredCatalog.length} Matching</span>
-          </div>
+        <div style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 12px;">
+          <button class="subtab-btn ${catalogSectorFilter === 'all' ? 'active' : ''} btn-filter-sec" data-sec="all" type="button" style="font-size: 12px; padding: 4px 10px;">All sectors</button>
+          ${sectors.map(s => `
+            <button class="subtab-btn ${catalogSectorFilter === s ? 'active' : ''} btn-filter-sec" data-sec="${s}" type="button" style="font-size: 12px; padding: 4px 10px; text-transform: capitalize;">${s}</button>
+          `).join("")}
+        </div>
 
-          <div style="display: flex; gap: 4px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 6px;">
-            ${sectors.map(s => `
-              <button class="subtab-btn ${catalogSectorFilter === s ? 'active' : ''} btn-sec-filter" data-sec="${s}" style="font-size: 9px; padding: 4px 6px; white-space: nowrap;">
-                ${s === 'all' ? 'All Sectors' : s.split(" ")[0]}
-              </button>
-            `).join("")}
-          </div>
-
-          <div style="display: flex; gap: 4px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 10px;">
-            ${tiers.map(t => `
-              <button class="subtab-btn ${catalogTierFilter === t ? 'active' : ''} btn-tier-filter" data-tier="${t}" style="font-size: 9px; padding: 4px 8px;">
-                ${t === 'all' ? 'All Tiers (A-G)' : `Tier ${t}`}
-              </button>
-            `).join("")}
-          </div>
-
-          <div style="display: flex; flex-direction: column; gap: 8px; max-height: 480px; overflow-y: auto;">
-            ${filteredCatalog.map(b => `
-              <div class="list-row" style="flex-direction: column; align-items: flex-start; gap: 4px; background: var(--bg-subtle); padding: 8px; border-radius: 8px;">
-                <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
-                  <div style="display: flex; align-items: center; gap: 6px;">
-                    <span style="font-size: 18px;">${b.icon}</span>
-                    <div>
-                      <h4 style="font-size: 12px; margin: 0;">${b.name}</h4>
-                      <div style="display: flex; gap: 4px; align-items: center; margin-top: 2px;">
-                        <span class="pill-badge blue" style="font-size: 8px;">${b.sector}</span>
-                        <span class="pill-badge purple" style="font-size: 8px;">Tier ${b.capitalTier}</span>
-                      </div>
-                    </div>
+        <div>
+          ${filtered.map(b => {
+            const canAfford = G.fin.cash >= b.startupCostUSD;
+            return `
+              <div class="list-row">
+                <div style="flex: 1; min-width: 0;">
+                  <div style="font-size: 15px;">${b.name}</div>
+                  <div style="font-size: 13px; color: var(--text-tertiary); margin-top: 2px;">
+                    ${b.sector} · Tier ${b.tier} · Margin ${Math.round(b.financialProfile.cogsRate * 100)}%
                   </div>
-                  <button class="btn btn-sm btn-primary btn-found-biz" data-id="${b.id}" style="font-size: 10px; padding: 4px 8px;">
-                    Found ($${b.startupCost.toLocaleString()})
+                </div>
+                <div style="display: flex; align-items: baseline; gap: 12px;">
+                  <div class="mono-val" style="font-size: 15px;">$${b.startupCostUSD.toLocaleString()}</div>
+                  <button class="btn btn-outline btn-sm btn-found-biz" data-id="${b.id}" ${!canAfford ? 'disabled' : ''} type="button">
+                    ${canAfford ? 'Incorporate' : 'Insufficient cash'}
                   </button>
                 </div>
-                <p style="font-size: 10px; color: var(--text-secondary); margin: 4px 0 0 0;">
-                  ${b.desc}
-                </p>
-                <div style="font-size: 9px; color: var(--accent-emerald); display: flex; gap: 8px; margin-top: 2px;">
-                  <span>Margin: ${Math.round(b.margin * 100)}%</span>
-                  <span>Exit: ${b.multiple}x</span>
-                  <span>Min Smarts: ${b.minSmarts}</span>
-                  <span>Engines: ${b.boundEngines.length}</span>
-                </div>
               </div>
-            `).join("")}
-          </div>
+            `;
+          }).join("")}
         </div>
       `;
-    }
-
-    // 3. FINANCIALS SUBTAB
-    else if (bizSubTab === "financials" && currentBiz) {
-      const fin = currentBiz.lastFinancials || {};
-      const pnl = fin.pnl || {
-        grossRevenue: currentBiz.annualRevenueUSD || currentBiz.annualRev || 100000,
-        returnsAndDiscounts: Math.round((currentBiz.annualRevenueUSD || 100000) * 0.02),
-        netRevenue: Math.round((currentBiz.annualRevenueUSD || 100000) * 0.98),
-        cogs: Math.round((currentBiz.annualRevenueUSD || 100000) * 0.4),
-        grossProfit: Math.round((currentBiz.annualRevenueUSD || 100000) * 0.58),
-        totalOpex: Math.round((currentBiz.annualRevenueUSD || 100000) * 0.35),
-        ebitda: currentBiz.ebitdaUSD || currentBiz.ebitda || 30000,
-        depreciation: Math.round((currentBiz.ebitdaUSD || 30000) * 0.15),
-        ebit: Math.round((currentBiz.ebitdaUSD || 30000) * 0.85),
-        interestExpense: 0,
-        ebt: Math.round((currentBiz.ebitdaUSD || 30000) * 0.85),
-        taxExpense: Math.round((currentBiz.ebitdaUSD || 30000) * 0.18),
-        netIncome: currentBiz.netProfitUSD || currentBiz.profit || 20000
-      };
-
-      const bs = fin.balanceSheet || {
-        cash: currentBiz.treasuryUSD || currentBiz.treasury || 50000,
-        ar: currentBiz.accountsReceivableUSD || 25000,
-        inventory: currentBiz.inventoryUSD || 15000,
-        fixedAssets: currentBiz.fixedAssetsUSD || 40000,
-        ipAssets: currentBiz.ipAssetsUSD || 0,
-        totalAssets: (currentBiz.treasuryUSD || 50000) + 80000,
-        ap: currentBiz.accountsPayableUSD || 15000,
-        shortTermDebt: currentBiz.shortTermDebtUSD || 0,
-        longTermDebt: currentBiz.longTermDebtUSD || 0,
-        totalLiabilities: (currentBiz.accountsPayableUSD || 15000),
-        paidInCapital: currentBiz.paidInCapitalUSD || 50000,
-        retainedEarnings: currentBiz.retainedEarningsUSD || 15000,
-        stockholdersEquity: (currentBiz.paidInCapitalUSD || 50000) + (currentBiz.retainedEarningsUSD || 15000)
-      };
-
-      const cf = fin.cashFlow || { cfo: pnl.netIncome, cfi: -25000, cff: 0, capex: 25000, netCashFlow: pnl.netIncome - 25000 };
-      const wc = fin.workingCapital || { dso: 30, dio: 30, dpo: 30, ccc: 30 };
+    } else if (bizSubTab === "financials" && currentBiz) {
+      // 3. FINANCIALS SUBTAB
+      const rev = currentBiz.annualRevenueUSD || currentBiz.revenue || 0;
+      const cogs = currentBiz.annualCOGSUSD || (rev * 0.4);
+      const gross = rev - cogs;
+      const opex = currentBiz.annualOpexUSD || (rev * 0.3);
+      const ebitda = gross - opex;
+      const net = currentBiz.netProfitUSD || (ebitda * 0.75);
 
       bodyHtml = `
-        <div class="card">
-          <div class="card-title-row">
-            <div class="card-title"><span>📊</span> GAAP Financial Statements</div>
-            <span style="font-size: 11px; color: var(--accent-emerald);">Fiscal Year ${currentBiz.yearsActive || 1}</span>
+        <h2 class="section-heading first">Income statement</h2>
+        <div class="surface-box" style="padding: 16px 20px;">
+          <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border-hairline);">
+            <span>Gross revenue</span>
+            <span class="mono-val">$${Math.round(rev).toLocaleString()}</span>
           </div>
-
-          <div style="background: var(--bg-subtle); padding: 8px; border-radius: 8px; font-size: 10px; margin-bottom: 12px;">
-            <div style="font-weight: 700; margin-bottom: 4px; color: #60a5fa;">⏱️ Cash Conversion Cycle (CCC): ${wc.ccc} Days</div>
-            <div style="display: flex; justify-content: space-between; color: var(--text-secondary);">
-              <span>DIO: ${wc.dio}d (Inventory)</span>
-              <span>+ DSO: ${wc.dso}d (Receivables)</span>
-              <span>- DPO: ${wc.dpo}d (Payables)</span>
-            </div>
+          <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border-hairline); color: var(--text-secondary);">
+            <span>Cost of goods sold (COGS)</span>
+            <span class="mono-val">-$${Math.round(cogs).toLocaleString()}</span>
           </div>
-
-          <div style="font-size: 11px; font-weight: 700; margin-bottom: 6px; color: #fff;">1. Income Statement (P&L)</div>
-          <div style="background: var(--bg-subtle); padding: 8px; border-radius: 8px; font-size: 10px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 4px;">
-            <div style="display: flex; justify-content: space-between;"><span>Gross Revenue:</span><span>$${pnl.grossRevenue.toLocaleString()}</span></div>
-            <div style="display: flex; justify-content: space-between; color: var(--text-secondary);"><span>Less: Returns & Discounts:</span><span>-$${pnl.returnsAndDiscounts.toLocaleString()}</span></div>
-            <div style="display: flex; justify-content: space-between; font-weight: 700;"><span>Net Revenue:</span><span>$${pnl.netRevenue.toLocaleString()}</span></div>
-            <div style="display: flex; justify-content: space-between; color: var(--accent-rose);"><span>Cost of Goods Sold (COGS):</span><span>-$${pnl.cogs.toLocaleString()}</span></div>
-            <div style="display: flex; justify-content: space-between; font-weight: 700; color: var(--accent-emerald);"><span>Gross Profit:</span><span>$${pnl.grossProfit.toLocaleString()}</span></div>
-            <div style="display: flex; justify-content: space-between; color: var(--text-secondary);"><span>Operating Expenses (OPEX):</span><span>-$${pnl.totalOpex.toLocaleString()}</span></div>
-            <div style="display: flex; justify-content: space-between; font-weight: 700;"><span>EBITDA:</span><span>$${pnl.ebitda.toLocaleString()}</span></div>
-            <div style="display: flex; justify-content: space-between; color: var(--text-secondary);"><span>Depreciation & Amortization:</span><span>-$${pnl.depreciation.toLocaleString()}</span></div>
-            <div style="display: flex; justify-content: space-between; font-weight: 700;"><span>Operating EBIT:</span><span>$${pnl.ebit.toLocaleString()}</span></div>
-            <div style="display: flex; justify-content: space-between; color: var(--text-secondary);"><span>Interest & Taxes:</span><span>-$${(pnl.interestExpense + pnl.taxExpense).toLocaleString()}</span></div>
-            <div style="display: flex; justify-content: space-between; font-weight: 800; font-size: 11px; border-top: 1px solid var(--border-color); padding-top: 4px; color: ${pnl.netIncome >= 0 ? 'var(--accent-emerald)' : 'var(--accent-rose)'};">
-              <span>Net Income:</span><span>$${pnl.netIncome.toLocaleString()}</span>
-            </div>
+          <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border-hairline); font-weight: 500;">
+            <span>Gross profit</span>
+            <span class="mono-val">$${Math.round(gross).toLocaleString()}</span>
           </div>
-
-          <div style="font-size: 11px; font-weight: 700; margin-bottom: 6px; color: #fff;">2. Balance Sheet Identity (Assets ≡ Liabilities + Equity)</div>
-          <div style="background: var(--bg-subtle); padding: 8px; border-radius: 8px; font-size: 10px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 4px;">
-            <div style="font-weight: 700; color: #60a5fa;">Assets:</div>
-            <div style="display: flex; justify-content: space-between; padding-left: 8px;"><span>Cash & Equivalents:</span><span>$${bs.cash.toLocaleString()}</span></div>
-            <div style="display: flex; justify-content: space-between; padding-left: 8px;"><span>Accounts Receivable (AR):</span><span>$${bs.ar.toLocaleString()}</span></div>
-            <div style="display: flex; justify-content: space-between; padding-left: 8px;"><span>Inventory:</span><span>$${bs.inventory.toLocaleString()}</span></div>
-            <div style="display: flex; justify-content: space-between; padding-left: 8px;"><span>PP&E + IP:</span><span>$${(bs.fixedAssets + bs.ipAssets).toLocaleString()}</span></div>
-            <div style="display: flex; justify-content: space-between; font-weight: 700; border-top: 1px solid var(--border-color); padding-top: 2px;">
-              <span>Total Assets:</span><span>$${bs.totalAssets.toLocaleString()}</span>
-            </div>
-
-            <div style="font-weight: 700; color: #f472b6; margin-top: 4px;">Liabilities & Equity:</div>
-            <div style="display: flex; justify-content: space-between; padding-left: 8px;"><span>Accounts Payable (AP):</span><span>$${bs.ap.toLocaleString()}</span></div>
-            <div style="display: flex; justify-content: space-between; padding-left: 8px;"><span>Debt Obligations:</span><span>$${(bs.shortTermDebt + bs.longTermDebt).toLocaleString()}</span></div>
-            <div style="display: flex; justify-content: space-between; padding-left: 8px;"><span>Stockholders' Equity:</span><span>$${bs.stockholdersEquity.toLocaleString()}</span></div>
-            <div style="display: flex; justify-content: space-between; font-weight: 700; border-top: 1px solid var(--border-color); padding-top: 2px;">
-              <span>Total Liabilities & Equity:</span><span>$${(bs.totalLiabilities + bs.stockholdersEquity).toLocaleString()}</span>
-            </div>
+          <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border-hairline); color: var(--text-secondary);">
+            <span>Operating expenses (OPEX)</span>
+            <span class="mono-val">-$${Math.round(opex).toLocaleString()}</span>
           </div>
-
-          <div style="font-size: 11px; font-weight: 700; margin-bottom: 6px; color: #fff;">3. Statement of Cash Flows</div>
-          <div style="background: var(--bg-subtle); padding: 8px; border-radius: 8px; font-size: 10px; display: flex; flex-direction: column; gap: 4px;">
-            <div style="display: flex; justify-content: space-between;"><span>Operating Cash Flow (CFO):</span><span style="color: ${cf.cfo >= 0 ? 'var(--accent-emerald)' : 'var(--accent-rose)'};">$${cf.cfo.toLocaleString()}</span></div>
-            <div style="display: flex; justify-content: space-between;"><span>Investing Cash Flow (CFI - CapEx):</span><span style="color: var(--accent-rose);">$${cf.cfi.toLocaleString()}</span></div>
-            <div style="display: flex; justify-content: space-between;"><span>Financing Cash Flow (CFF):</span><span>$${cf.cff.toLocaleString()}</span></div>
-            <div style="display: flex; justify-content: space-between; font-weight: 800; border-top: 1px solid var(--border-color); padding-top: 4px;">
-              <span>Net Change in Liquid Cash:</span><span>$${cf.netCashFlow.toLocaleString()}</span>
-            </div>
+          <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border-hairline); font-weight: 500;">
+            <span>EBITDA</span>
+            <span class="mono-val">$${Math.round(ebitda).toLocaleString()}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; padding: 8px 0; font-weight: 600;">
+            <span>Net income</span>
+            <span class="mono-val" style="color: ${net >= 0 ? 'var(--accent-ink)' : 'var(--accent-rose)'};">$${Math.round(net).toLocaleString()}</span>
           </div>
         </div>
       `;
-    }
-
-    // 4. FUNDRAISING SUBTAB
-    else if (bizSubTab === "fundraising" && currentBiz) {
-      const pitchScore = calculateFounderPitchScore(G, currentBiz);
-
+    } else if (bizSubTab === "fundraising" && currentBiz) {
+      // 4. FUNDRAISING SUBTAB
+      const pitchScore = calculateFounderPitchScore ? calculateFounderPitchScore(G, currentBiz) : 80;
       bodyHtml = `
-        <div class="card">
-          <div class="card-title-row">
-            <div class="card-title"><span>🚀</span> Capital Markets & Pitch Desk</div>
-            <span class="pill-badge emerald">Pitch Score: ${pitchScore}</span>
+        <h2 class="section-heading first">Venture financing</h2>
+        <div class="detail-grid">
+          <div>
+            <div class="detail-label">Pitch readiness score</div>
+            <div class="detail-val-mono">${pitchScore}/100</div>
           </div>
-
-          <div style="background: var(--bg-subtle); padding: 8px; border-radius: 8px; font-size: 10px; margin-bottom: 12px;">
-            <div style="font-weight: 700; margin-bottom: 2px;">Founder Pedigree Breakdown:</div>
-            <div style="color: var(--text-secondary);">
-              Degree: ${G.education?.college?.name || "Self-Taught"} | 
-              Smarts: ${G.stats.smarts} | 
-              Prestige: ${G.stats.prestige} | 
-              Current Equity: ${currentBiz.founderEquityPct || 100}%
-            </div>
+          <div>
+            <div class="detail-label">Current valuation</div>
+            <div class="detail-val-mono">$${(currentBiz.valuationUSD || 100000).toLocaleString()}</div>
           </div>
-
-          <div style="font-size: 11px; font-weight: 700; margin-bottom: 6px;">Select Funding Source to Solicit Term Sheets:</div>
-          <div style="display: flex; flex-direction: column; gap: 6px; max-height: 380px; overflow-y: auto;">
-            ${FUNDING_SOURCES.map(s => `
-              <div style="background: var(--bg-subtle); padding: 8px; border-radius: 8px; font-size: 10px;">
-                <div style="display: flex; justify-content: space-between; font-weight: 700; margin-bottom: 2px;">
-                  <span>${s.name} (${s.tier})</span>
-                  <button class="btn btn-sm btn-primary btn-solicit-terms" data-sid="${s.id}" style="font-size: 9px; padding: 2px 6px;">
-                    Solicit Terms ➔
-                  </button>
-                </div>
-                <p style="margin: 0; color: var(--text-secondary);">${s.desc}</p>
-                <div style="color: #60a5fa; margin-top: 2px;">Check Size: $${s.minCheck.toLocaleString()} – $${s.maxCheck.toLocaleString()}</div>
-              </div>
-            `).join("")}
+          <div>
+            <div class="detail-label">Founder equity</div>
+            <div class="detail-val-mono">${currentBiz.founderEquityPct || 100}%</div>
+          </div>
+          <div>
+            <div class="detail-label">Treasury runway</div>
+            <div class="detail-val-mono">${currentBiz.treasuryUSD > 0 ? 'Positive' : 'Breakeven'}</div>
           </div>
         </div>
-      `;
-    }
 
-    // 5. BOARDROOM SUBTAB
-    else if (bizSubTab === "boardroom" && currentBiz) {
-      const seats = currentBiz.board?.seats || [
-        { id: "founder", title: "Founder & CEO (YOU)", votes: 1, type: "founder", loyalty: 100, agenda: "growth" }
+        <div style="margin-top: 18px;">
+          <button class="btn btn-primary btn-sm" id="btnGenerateTermSheets" type="button">Pitch venture investors</button>
+        </div>
+      `;
+    } else if (bizSubTab === "boardroom" && currentBiz) {
+      // 5. BOARDROOM SUBTAB
+      const members = currentBiz.board?.members || [
+        { name: `${G.char.firstName} ${G.char.lastName}`, archetype: "Founder", votingShare: 60, alignment: 100 }
       ];
-
       bodyHtml = `
-        <div class="card">
-          <div class="card-title-row">
-            <div class="card-title"><span>🏛️</span> Board of Directors Chamber</div>
-            <span style="font-size: 11px; color: var(--text-secondary);">${seats.length} Seated Directors</span>
+        <h2 class="section-heading first">Board of directors</h2>
+        <div>
+          ${members.map(m => `
+            <div class="list-row">
+              <div style="flex: 1; min-width: 0;">
+                <div style="font-size: 15px;">${m.name}</div>
+                <div style="font-size: 13px; color: var(--text-tertiary); margin-top: 2px;">
+                  ${m.archetype} · Alignment ${m.alignment}%
+                </div>
+              </div>
+              <div class="mono-val">${m.votingShare}% vote</div>
+            </div>
+          `).join("")}
+        </div>
+      `;
+    } else if (bizSubTab === "org" && currentBiz) {
+      // 6. ORG & ATTENTION UNITS SUBTAB
+      bodyHtml = `
+        <h2 class="section-heading first">Executive focus & organization</h2>
+        <div class="detail-grid">
+          <div>
+            <div class="detail-label">Scale tier</div>
+            <div class="detail-val" style="text-transform: capitalize;">${currentBiz.org?.scaleTier || 'micro'}</div>
           </div>
-
-          ${currentBiz.board?.coupThreat ? `
-            <div style="background: rgba(239, 68, 68, 0.2); border: 1px solid var(--accent-rose); border-radius: 8px; padding: 10px; font-size: 10px; color: #fca5a5; margin-bottom: 12px;">
-              <div style="font-weight: 700; font-size: 11px; margin-bottom: 4px;">🚨 BOARDROOM COUP IN PROGRESS!</div>
-              <div>${currentBiz.board.coupReason}</div>
-              <div style="margin-top: 8px; font-weight: 700; color: #fff;">Activate Tactical Defense:</div>
-              <div style="display: flex; flex-direction: column; gap: 4px; margin-top: 6px;">
-                <button class="btn btn-sm btn-coup-def" data-lever="lobby_swing_vote" style="background: #3b82f6; text-align: left;">
-                  🎯 Lobby Independent Swing Vote (25 Energy)
-                </button>
-                <button class="btn btn-sm btn-coup-def" data-lever="dual_class_defense" style="background: #8b5cf6; text-align: left;">
-                  ⚖️ Invoke Class-B Super-Voting Defense (10:1 Voting Rights)
-                </button>
-                <button class="btn btn-sm btn-coup-def" data-lever="personal_cash_injection" style="background: #10b981; text-align: left;">
-                  💵 Personal Cash Injection (Guarantees 12 Months Runway)
-                </button>
-                <button class="btn btn-sm btn-coup-def" data-lever="step_down_to_chairman" style="background: #f59e0b; color: #000; text-align: left; font-weight: 700;">
-                  👑 Step Down to Chairman & CPO (Keep 100% Equity)
-                </button>
-              </div>
-            </div>
-          ` : `
-            <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid var(--accent-emerald); border-radius: 8px; padding: 8px; font-size: 10px; color: #6ee7b7; margin-bottom: 12px;">
-              ✅ <strong>Board Relations Stable:</strong> Founder maintains the confidence and statutory direction of the board.
-            </div>
-          `}
-
-          <div style="font-size: 11px; font-weight: 700; margin-bottom: 6px;">Director Seat Roster:</div>
-          <div style="display: flex; flex-direction: column; gap: 6px;">
-            ${seats.map(s => `
-              <div style="background: var(--bg-subtle); padding: 8px; border-radius: 8px; font-size: 10px; display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                  <div style="font-weight: 700;">${s.title}</div>
-                  <div style="color: var(--text-secondary); font-size: 9px;">Agenda: ${(s.agenda || 'growth').toUpperCase()} | Votes: ${s.votes || 1}</div>
-                </div>
-                <div style="text-align: right;">
-                  <div style="color: ${(s.loyalty || 70) >= 70 ? 'var(--accent-emerald)' : ((s.loyalty || 70) >= 40 ? 'var(--accent-amber)' : 'var(--accent-rose)')}; font-weight: 700;">
-                    Loyalty: ${s.loyalty || 70}%
-                  </div>
-                </div>
-              </div>
-            `).join("")}
+          <div>
+            <div class="detail-label">Headcount</div>
+            <div class="detail-val-mono">${currentBiz.org?.headcount || 12}</div>
           </div>
         </div>
       `;
     }
 
-    // 6. ORG & AU SUBTAB
-    else if (bizSubTab === "org" && currentBiz) {
-      const org = currentBiz.org || { scaleTier: "micro", allocatedAU: { strategy: 30, hiring: 25, investorRel: 15, product: 20, fires: 10 }, techDebt: 5, qaDeficit: 5, regulatoryExposure: 5, morale: 90 };
-      const au = org.allocatedAU || { strategy: 30, hiring: 25, investorRel: 15, product: 20, fires: 10 };
+    vc.innerHTML = `
+      ${subNavHtml}
+      ${bodyHtml}
+    `;
 
-      bodyHtml = `
-        <div class="card">
-          <div class="card-title-row">
-            <div class="card-title"><span>👥</span> Organizational Scale & Attention Units</div>
-            <span class="pill-badge purple">${(org.scaleTier || 'micro').toUpperCase()} TIER</span>
-          </div>
-
-          <div style="background: var(--bg-subtle); padding: 8px; border-radius: 8px; font-size: 10px; margin-bottom: 12px;">
-            <div style="font-weight: 700; margin-bottom: 4px; color: var(--accent-rose);">⚠️ Latent Crisis Detonation Queue:</div>
-            <div style="display: flex; flex-direction: column; gap: 4px;">
-              <div style="display: flex; justify-content: space-between;">
-                <span>Tech Debt:</span>
-                <strong style="color: ${org.techDebt > 70 ? 'var(--accent-rose)' : '#fff'};">${org.techDebt}%</strong>
-              </div>
-              <div style="display: flex; justify-content: space-between;">
-                <span>QA & Defect Deficit:</span>
-                <strong style="color: ${org.qaDeficit > 70 ? 'var(--accent-rose)' : '#fff'};">${org.qaDeficit}%</strong>
-              </div>
-              <div style="display: flex; justify-content: space-between;">
-                <span>Regulatory Exposure:</span>
-                <strong style="color: ${org.regulatoryExposure > 70 ? 'var(--accent-rose)' : '#fff'};">${org.regulatoryExposure}%</strong>
-              </div>
-            </div>
-          </div>
-
-          <div style="font-size: 11px; font-weight: 700; margin-bottom: 6px;">Allocate Founder's 100 Annual Attention Units (AU):</div>
-          <div style="display: flex; flex-direction: column; gap: 8px; font-size: 10px;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span>Vision & Strategy:</span>
-              <input type="number" class="inp-au" data-k="strategy" value="${au.strategy}" min="0" max="60" style="width: 50px; background: #000; color: #fff; border: 1px solid var(--border-color); border-radius: 4px; padding: 2px 4px; text-align: center;">
-            </div>
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span>Key Executive Hiring:</span>
-              <input type="number" class="inp-au" data-k="hiring" value="${au.hiring}" min="0" max="60" style="width: 50px; background: #000; color: #fff; border: 1px solid var(--border-color); border-radius: 4px; padding: 2px 4px; text-align: center;">
-            </div>
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span>Investor Relations & Board:</span>
-              <input type="number" class="inp-au" data-k="investorRel" value="${au.investorRel}" min="0" max="60" style="width: 50px; background: #000; color: #fff; border: 1px solid var(--border-color); border-radius: 4px; padding: 2px 4px; text-align: center;">
-            </div>
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span>Product & R&D Review:</span>
-              <input type="number" class="inp-au" data-k="product" value="${au.product}" min="0" max="60" style="width: 50px; background: #000; color: #fff; border: 1px solid var(--border-color); border-radius: 4px; padding: 2px 4px; text-align: center;">
-            </div>
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span>Operational Firefighting:</span>
-              <input type="number" class="inp-au" data-k="fires" value="${au.fires}" min="0" max="60" style="width: 50px; background: #000; color: #fff; border: 1px solid var(--border-color); border-radius: 4px; padding: 2px 4px; text-align: center;">
-            </div>
-            <button class="btn btn-primary btn-sm btn-save-au" style="margin-top: 8px;">Save 100 AU Allocation</button>
-          </div>
-        </div>
-      `;
-    }
-
-    vc.innerHTML = subNavHtml + bodyHtml;
-
-    // EVENT LISTENERS
+    // Event Bindings
     document.querySelectorAll(".btn-biz-subtab").forEach(btn => {
       btn.addEventListener("click", () => {
         bizSubTab = btn.dataset.tab;
-        renderCurrentTab();
+        renderBusinessTab(vc);
       });
     });
 
     document.querySelectorAll(".btn-switch-biz").forEach(btn => {
       btn.addEventListener("click", () => {
-        activeBizIndex = parseInt(btn.dataset.idx);
-        renderCurrentTab();
+        activeBizIndex = parseInt(btn.dataset.idx, 10);
+        renderBusinessTab(vc);
       });
     });
 
-    document.querySelectorAll(".btn-sec-filter").forEach(btn => {
+    document.querySelector(".btn-go-catalog")?.addEventListener("click", () => {
+      bizSubTab = "catalog";
+      renderBusinessTab(vc);
+    });
+
+    document.querySelectorAll(".btn-filter-sec").forEach(btn => {
       btn.addEventListener("click", () => {
         catalogSectorFilter = btn.dataset.sec;
-        renderCurrentTab();
+        renderBusinessTab(vc);
       });
     });
 
-    document.querySelectorAll(".btn-tier-filter").forEach(btn => {
-      btn.addEventListener("click", () => {
-        catalogTierFilter = btn.dataset.tier;
-        renderCurrentTab();
-      });
-    });
-
-    document.querySelectorAll(".btn-go-catalog").forEach(btn => {
-      btn.addEventListener("click", () => {
-        bizSubTab = "catalog";
-        renderCurrentTab();
-      });
-    });
-
-    document.querySelectorAll(".btn-goto-board").forEach(btn => {
-      btn.addEventListener("click", () => {
-        bizSubTab = "boardroom";
-        renderCurrentTab();
-      });
-    });
-
-    // Found Business
     document.querySelectorAll(".btn-found-biz").forEach(btn => {
       btn.addEventListener("click", () => {
         const id = btn.dataset.id;
-        const t = BUSINESS_CATALOG.find(x => x.id === id);
-        if (!t) return;
-
-        if (G.stats.smarts < t.minSmarts) {
-          toast(`Requires at least ${t.minSmarts} Smarts to establish ${t.name}!`, "error");
+        const template = BUSINESS_CATALOG.find(b => b.id === id);
+        if (!template) return;
+        if (G.fin.cash < template.startupCostUSD) {
+          toast("Insufficient personal cash to incorporate.", "error");
           return;
         }
-        if (G.fin.cash < t.startupCost) {
-          toast(`Requires $${t.startupCost.toLocaleString()} wallet cash!`, "error");
-          return;
-        }
-
-        G.fin.cash -= t.startupCost;
-        const initialFixedAssets = Math.round(t.startupCost * (t.workingCapital?.capexIntensity || 0.25));
-        const initialTreasury = t.startupCost - initialFixedAssets;
-
-        G.biz.push({
-          instanceId: `biz_${Date.now()}`,
-          catalogId: t.id,
-          name: t.name,
-          sector: t.sector,
-          icon: t.icon,
-          capitalTier: t.capitalTier,
-          scaleUnits: 1,
-          yearsActive: 0,
+        G.fin.cash -= template.startupCostUSD;
+        const newBiz = {
+          id: template.id + "_" + Date.now(),
+          templateId: template.id,
+          name: template.name,
+          sector: template.sector,
+          capitalTier: template.tier,
+          valuationUSD: template.startupCostUSD * 2.5,
+          annualRevenueUSD: template.baselineRevenueUSD || (template.startupCostUSD * 1.2),
+          annualCOGSUSD: (template.baselineRevenueUSD || (template.startupCostUSD * 1.2)) * (template.financialProfile?.cogsRate || 0.4),
+          annualOpexUSD: (template.baselineRevenueUSD || (template.startupCostUSD * 1.2)) * (template.financialProfile?.opexRate || 0.3),
+          netProfitUSD: (template.baselineRevenueUSD || (template.startupCostUSD * 1.2)) * 0.25,
+          treasuryUSD: Math.round(template.startupCostUSD * 0.4),
           founderEquityPct: 100,
-          founderClassBSharesPct: 100,
-          headcount: t.capitalTier === "A" ? 1 : (t.capitalTier === "B" ? 2 : (t.capitalTier === "C" ? 6 : (t.capitalTier === "D" ? 20 : (t.capitalTier === "E" ? 60 : (t.capitalTier === "F" ? 150 : 500))))),
-          annualRevenueUSD: t.baseRev,
-          annualRev: t.baseRev,
-          ebitdaUSD: Math.round(t.baseRev * 0.25),
-          ebitda: Math.round(t.baseRev * 0.25),
-          netProfitUSD: Math.round(t.baseRev * 0.18),
-          profit: Math.round(t.baseRev * 0.18),
-          treasuryUSD: initialTreasury,
-          treasury: initialTreasury,
-          accountsReceivableUSD: Math.round(t.baseRev * (t.workingCapital.dso / 365)),
-          inventoryUSD: Math.round(t.baseRev * (1 - t.margin) * (t.workingCapital.dio / 365)),
-          fixedAssetsUSD: initialFixedAssets,
-          ipAssetsUSD: t.boundEngines.includes("research_ip") ? Math.round(t.startupCost * 0.3) : 0,
-          accountsPayableUSD: Math.round(t.baseRev * (1 - t.margin) * (t.workingCapital.dpo / 365)),
-          shortTermDebtUSD: 0,
-          longTermDebtUSD: 0,
-          retainedEarningsUSD: 0,
-          paidInCapitalUSD: t.startupCost,
-          valuationUSD: Math.round(t.baseRev * t.multiple * 0.3),
-          valuation: Math.round(t.baseRev * t.multiple * 0.3),
-          marketingBudgetUSD: Math.round(t.baseRev * 0.05),
-          workingCapitalDays: { ...t.workingCapital },
-          boundEngines: [...t.boundEngines],
-          kpis: {},
-          inRestructuring: false,
+          sharesIssued: 1000000,
           board: {
-            seats: [
-              { id: "founder", title: "Founder & CEO (YOU)", votes: 1, type: "founder", loyalty: 100, agenda: "growth" }
-            ],
-            coupThreat: false,
-            coupReason: null
+            members: [
+              { name: `${G.char.firstName} ${G.char.lastName}`, archetype: "Founder", votingShare: 100, alignment: 100 }
+            ]
           },
-          org: {
-            scaleTier: "micro",
-            allocatedAU: { strategy: 30, hiring: 25, investorRel: 15, product: 20, fires: 10 },
-            techDebt: 5, qaDeficit: 5, regulatoryExposure: 5, morale: 90
-          }
-        });
-
-        toast(`🎉 Incorporated ${t.name}!`, "celebrate");
+          org: { scaleTier: "micro", headcount: 8, attentionUnits: { product: 30, sales: 25, engineering: 25, compliance: 10, ops: 10 } }
+        };
+        G.biz.push(newBiz);
         activeBizIndex = G.biz.length - 1;
         bizSubTab = "enterprises";
+        toast(`Incorporated ${newBiz.name}.`, "celebrate");
         updateHeader();
-        renderCurrentTab();
+        renderBusinessTab(vc);
       });
     });
 
-    // Expand
-    document.querySelectorAll(".btn-biz-expand").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const idx = parseInt(btn.dataset.idx);
-        const b = G.biz[idx];
-        const val = b.valuationUSD || b.valuation || 100000;
-        const cost = Math.round(val * 0.08);
+    document.getElementById("btnBizPrice")?.addEventListener("click", () => {
+      if (!currentBiz) return;
+      currentBiz.priceMultiplier = ((currentBiz.priceMultiplier || 1.0) >= 1.3) ? 0.8 : ((currentBiz.priceMultiplier || 1.0) + 0.1);
+      toast(`Adjusted product pricing to ${((currentBiz.priceMultiplier) * 100).toFixed(0)}% of baseline.`, "info");
+      renderBusinessTab(vc);
+    });
 
-        if ((b.treasuryUSD || b.treasury || 0) >= cost) {
-          b.treasuryUSD = (b.treasuryUSD || 0) - cost;
-          b.treasury = b.treasuryUSD;
-        } else if (G.fin.cash >= cost) {
-          G.fin.cash -= cost;
-        } else {
-          toast("Insufficient funds for expansion.", "error");
-          return;
-        }
+    document.getElementById("btnBizMarketing")?.addEventListener("click", () => {
+      if (!currentBiz) return;
+      const cost = Math.round((currentBiz.valuationUSD || 100000) * 0.05);
+      if (currentBiz.treasuryUSD < cost) { toast("Insufficient corporate treasury cash.", "error"); return; }
+      currentBiz.treasuryUSD -= cost;
+      currentBiz.annualRevenueUSD = Math.round((currentBiz.annualRevenueUSD || 100000) * 1.15);
+      toast(`Marketing campaign launched (+15% Revenue).`, "celebrate");
+      renderBusinessTab(vc);
+    });
 
-        b.scaleUnits = (b.scaleUnits || 1) + 1;
-        b.headcount = (b.headcount || 4) + 6;
-        toast(`Expanded ${b.name}! (Now Scale Units: ${b.scaleUnits})`, "celebrate");
+    document.getElementById("btnBizRD")?.addEventListener("click", () => {
+      if (!currentBiz) return;
+      const cost = Math.round((currentBiz.valuationUSD || 100000) * 0.08);
+      if (currentBiz.treasuryUSD < cost) { toast("Insufficient corporate treasury cash.", "error"); return; }
+      currentBiz.treasuryUSD -= cost;
+      currentBiz.valuationUSD = Math.round((currentBiz.valuationUSD || 100000) * 1.2);
+      toast(`R&D completed (+20% Valuation).`, "celebrate");
+      renderBusinessTab(vc);
+    });
+
+    document.getElementById("btnBizDividend")?.addEventListener("click", () => {
+      if (!currentBiz) return;
+      const div = Math.round((currentBiz.treasuryUSD || 0) * 0.4);
+      if (div <= 0) { toast("No treasury cash available for dividends.", "error"); return; }
+      currentBiz.treasuryUSD -= div;
+      const founderShare = Math.round(div * ((currentBiz.founderEquityPct || 100) / 100));
+      G.fin.cash += founderShare;
+      toast(`Distributed $${div.toLocaleString()} dividend ($${founderShare.toLocaleString()} to founder).`, "celebrate");
+      updateHeader();
+      renderBusinessTab(vc);
+    });
+
+    document.getElementById("btnBizIPO")?.addEventListener("click", () => {
+      if (!currentBiz) return;
+      if ((currentBiz.valuationUSD || 0) < 50000000) {
+        toast("Requires at least $50,000,000 valuation for public IPO.", "error");
+        return;
+      }
+      const payout = Math.round((currentBiz.valuationUSD || 0) * ((currentBiz.founderEquityPct || 100) / 100) * 0.85);
+      G.fin.cash += payout;
+      toast(`IPO successful. Listed on NASDAQ, founder liquid payout $${payout.toLocaleString()}.`, "celebrate");
+      G.biz.splice(activeBizIndex, 1);
+      activeBizIndex = 0;
+      updateHeader();
+      renderBusinessTab(vc);
+    });
+
+    document.getElementById("btnBizSell")?.addEventListener("click", () => {
+      if (!currentBiz) return;
+      const buyout = Math.round((currentBiz.valuationUSD || 100000) * 1.1);
+      const founderCash = Math.round(buyout * ((currentBiz.founderEquityPct || 100) / 100));
+      modal("Corporate Buyout Offer", `
+        <p style="font-size: 14px; line-height: 1.5; color: var(--text-secondary); margin-bottom: 16px;">
+          A private equity group has tendered a buyout offer for ${currentBiz.name} at a valuation of $${buyout.toLocaleString()}. Your net proceeds would be $${founderCash.toLocaleString()}.
+        </p>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-primary btn-full" id="btnAcceptBuyout" type="button">Accept buyout</button>
+          <button class="btn btn-outline btn-full" onclick="document.getElementById('modalOverlay').classList.remove('open')" type="button">Decline</button>
+        </div>
+      `);
+      document.getElementById("btnAcceptBuyout")?.addEventListener("click", () => {
+        closeModal();
+        G.fin.cash += founderCash;
+        G.biz.splice(activeBizIndex, 1);
+        activeBizIndex = 0;
+        toast(`Acquisition closed. Received $${founderCash.toLocaleString()}.`, "celebrate");
         updateHeader();
-        renderCurrentTab();
+        renderBusinessTab(vc);
       });
     });
 
-    // Dividend
-    document.querySelectorAll(".btn-biz-dividend").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const idx = parseInt(btn.dataset.idx);
-        const b = G.biz[idx];
-        const cash = b.treasuryUSD || b.treasury || 0;
-        const div = Math.round(Math.max(0, cash) * 0.3 * ((b.founderEquityPct || 100) / 100));
-
-        if (div <= 0) {
-          toast("No liquid treasury cash available for dividends.", "error");
-          return;
-        }
-
-        b.treasuryUSD = cash - div;
-        b.treasury = b.treasuryUSD;
-        G.fin.cash += div;
-        toast(`Withdrew $${div.toLocaleString()} founder dividend!`, "celebrate");
-        updateHeader();
-        renderCurrentTab();
-      });
+    document.getElementById("btnGenerateTermSheets")?.addEventListener("click", () => {
+      if (!currentBiz) return;
+      const sheets = generateTermSheets ? generateTermSheets(G, currentBiz) : [
+        { investorName: "Sequoia Capital", investmentUSD: 2000000, preMoneyValuationUSD: 10000000, equityPct: 16.7, boardSeats: 1, liquidationPref: "1x Non-Participating" },
+        { investorName: "Founders Fund", investmentUSD: 2500000, preMoneyValuationUSD: 12000000, equityPct: 17.2, boardSeats: 1, liquidationPref: "1x Non-Participating" }
+      ];
+      showInteractiveTermSheetsModal(sheets, currentBiz);
     });
-
-    // Inject Cash
-    document.querySelectorAll(".btn-biz-inject").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const idx = parseInt(btn.dataset.idx);
-        const b = G.biz[idx];
-        const injectAmt = 50000;
-
-        if (G.fin.cash < injectAmt) {
-          toast(`Insufficient personal cash ($${injectAmt.toLocaleString()} required).`, "error");
-          return;
-        }
-
-        G.fin.cash -= injectAmt;
-        b.treasuryUSD = (b.treasuryUSD || 0) + injectAmt;
-        b.treasury = b.treasuryUSD;
-        b.paidInCapitalUSD = (b.paidInCapitalUSD || 0) + injectAmt;
-        if (b.inRestructuring && b.treasuryUSD > 0) b.inRestructuring = false;
-
-        toast(`Injected $${injectAmt.toLocaleString()} personal cash into ${b.name} treasury!`, "celebrate");
-        updateHeader();
-        renderCurrentTab();
-      });
-    });
-
-    // M&A Exit
-    document.querySelectorAll(".btn-biz-sell").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const idx = parseInt(btn.dataset.idx);
-        const b = G.biz[idx];
-        const val = b.valuationUSD || b.valuation || 100000;
-        const founderProceeds = Math.round(val * ((b.founderEquityPct || 100) / 100));
-
-        if (confirm(`Accept institutional M&A buyout offer for ${b.name} at valuation $${val.toLocaleString()}?\n\nYour ${b.founderEquityPct || 100}% equity yields: $${founderProceeds.toLocaleString()} personal cash.`)) {
-          G.fin.cash += founderProceeds;
-          if (!G.pastExits) G.pastExits = [];
-          G.pastExits.push({ name: b.name, valuation: val, proceeds: founderProceeds, year: G.char.age });
-          G.biz.splice(idx, 1);
-          toast(`🏆 Sold ${b.name} for $${founderProceeds.toLocaleString()}!`, "celebrate");
-          activeBizIndex = 0;
-          updateHeader();
-          renderCurrentTab();
-        }
-      });
-    });
-
-    // Coup Defense Levers
-    document.querySelectorAll(".btn-coup-def").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const lever = btn.dataset.lever;
-        const res = executeCoupDefense(G, currentBiz, lever);
-        if (res.success) toast(res.message, "celebrate");
-        else toast(res.message, "error");
-        updateHeader();
-        renderCurrentTab();
-      });
-    });
-
-    // Solicit Term Sheets
-    document.querySelectorAll(".btn-solicit-terms").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const sid = btn.dataset.sid;
-        const sheets = generateTermSheets(G, currentBiz, sid);
-        showInteractiveTermSheetsModal(sheets, currentBiz);
-      });
-    });
-
-    // Save AU
-    const btnSaveAU = document.querySelector(".btn-save-au");
-    if (btnSaveAU) {
-      btnSaveAU.addEventListener("click", () => {
-        const newAU = {};
-        document.querySelectorAll(".inp-au").forEach(inp => {
-          newAU[inp.dataset.k] = parseInt(inp.value) || 0;
-        });
-        const res = reallocateAttentionUnits(currentBiz, newAU);
-        if (res.success) toast(res.message, "celebrate");
-        else toast(res.message, "error");
-        renderCurrentTab();
-      });
-    }
   }
 
   function showInteractiveTermSheetsModal(sheets, biz) {
-    let modalHtml = `
-      <div style="font-size: 11px;">
-        <p style="color: var(--text-secondary); margin-bottom: 12px;">
-          Review competing investor term sheets for <strong>${biz.name}</strong>. Negotiate valuation counter-offers or accept standard terms.
-        </p>
-        <div style="display: flex; flex-direction: column; gap: 10px;">
-          ${sheets.map((s, i) => `
-            <div style="background: var(--bg-subtle); padding: 10px; border-radius: 8px; border: 1px solid var(--border-color);">
-              <div style="display: flex; justify-content: space-between; font-weight: 700; margin-bottom: 4px;">
-                <span>${s.investorName}</span>
-                <span class="pill-badge blue" style="font-size: 9px;">${s.investorType}</span>
+    modal("Term sheet comparison", `
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        ${sheets.map((s, idx) => `
+          <div class="surface-box" style="padding: 16px 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px;">
+              <span style="font-weight: 500; font-size: 15px;">${s.investorName}</span>
+              <span class="mono-val" style="font-size: 15px;">$${s.investmentUSD.toLocaleString()}</span>
+            </div>
+            <div class="detail-grid" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 12px;">
+              <div>
+                <div class="detail-label">Pre-money</div>
+                <div class="detail-val-mono">$${s.preMoneyValuationUSD.toLocaleString()}</div>
               </div>
-              <div style="font-size: 10px; color: var(--text-secondary); margin-bottom: 6px;">
-                Check: <strong style="color: #fff;">$${s.investmentCheckUSD.toLocaleString()}</strong> | 
-                Pre-Money: <strong>$${s.preMoneyValuationUSD.toLocaleString()}</strong> | 
-                Dilution: <strong style="color: var(--accent-amber);">${s.postMoneyEquityPct}%</strong>
+              <div>
+                <div class="detail-label">Dilution</div>
+                <div class="detail-val-mono">${s.equityPct}%</div>
               </div>
-              <div style="font-size: 9px; color: var(--text-secondary); margin-bottom: 8px;">
-                Liquidation Pref: <strong>${s.liquidationPreference}</strong> | 
-                Option Pool: <strong>${s.optionPoolPct}%</strong> | 
-                Board Seats: <strong>${s.boardSeatsRequested}</strong>
-              </div>
-              <div style="display: flex; gap: 6px; align-items: center;">
-                <button class="btn btn-sm btn-primary btn-accept-sheet" data-idx="${i}" style="font-size: 10px; padding: 4px 8px;">
-                  Accept Deal
-                </button>
-                <button class="btn btn-sm btn-counter-sheet" data-idx="${i}" style="font-size: 10px; padding: 4px 8px;">
-                  Counter-Offer (+20% Val)
-                </button>
+              <div>
+                <div class="detail-label">Board seats</div>
+                <div class="detail-val-mono">${s.boardSeats}</div>
               </div>
             </div>
-          `).join("")}
-        </div>
+            <button class="btn btn-outline btn-sm btn-accept-termsheet" data-idx="${idx}" type="button">Execute investment</button>
+          </div>
+        `).join("")}
       </div>
-    `;
+    `);
 
-    openModal("Term Sheet Negotiations", modalHtml);
-
-    document.querySelectorAll(".btn-accept-sheet").forEach(btn => {
+    document.querySelectorAll(".btn-accept-termsheet").forEach(btn => {
       btn.addEventListener("click", () => {
-        const idx = parseInt(btn.dataset.idx);
-        const accepted = sheets[idx];
-        const res = executeFinancingRound(G, biz, accepted);
+        const s = sheets[parseInt(btn.dataset.idx, 10)];
+        if (!s) return;
+        biz.treasuryUSD += s.investmentUSD;
+        biz.valuationUSD = s.preMoneyValuationUSD + s.investmentUSD;
+        biz.founderEquityPct = Math.round(biz.founderEquityPct * (1 - s.equityPct / 100));
         closeModal();
-        toast(res.message, "celebrate");
+        toast(`Financing closed with ${s.investorName}.`, "celebrate");
         updateHeader();
         renderCurrentTab();
       });
     });
-
-    document.querySelectorAll(".btn-counter-sheet").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const idx = parseInt(btn.dataset.idx);
-        const sheet = sheets[idx];
-        const res = negotiateTermSheet(G, biz, sheet, 20);
-        if (res.accepted) {
-          sheets[idx] = res.revisedSheet;
-          toast(res.message, "celebrate");
-          showInteractiveTermSheetsModal(sheets, biz);
-        } else {
-          toast(res.message, "error");
-        }
-      });
-    });
   }
 
-
-  // TAB 4: FINANCE & ASSETS
-  let finSub = "stocks";
+  // TAB 4: FINANCE, ASSETS & MARKETS
+  let finSub = "stocks"; // "stocks", "real_estate", "forbes"
   function renderFinanceAssetsTab(vc) {
     const age = G.char.age;
 
     if (age < 18) {
       vc.innerHTML = `
-        <div class="subtabs-bar">
-          <button class="subtab-btn ${finSub === 'piggy' ? 'active' : ''}" id="fsubPiggy">🪙 Piggy Bank</button>
-          <button class="subtab-btn ${finSub === 'stocks' ? 'active' : ''}" id="fsubStocks">📈 Stocks (Locked)</button>
-          <button class="subtab-btn ${finSub === 'real_estate' ? 'active' : ''}" id="fsubRE">🏠 Real Estate (Locked)</button>
-          <button class="subtab-btn ${finSub === 'forbes' ? 'active' : ''}" id="fsubForbes">🏆 Forbes Richest</button>
+        <div class="surface-box" style="padding: 24px; text-align: center; margin-bottom: 16px;">
+          <div style="font-size: 15px; font-weight: 500; margin-bottom: 6px;">Childhood savings</div>
+          <div class="detail-grid" style="max-width: 320px; margin: 0 auto 16px; text-align: left;">
+            <div>
+              <div class="detail-label">Pocket money cash</div>
+              <div class="detail-val-mono">$${G.fin.cash.toLocaleString()}</div>
+            </div>
+            <div>
+              <div class="detail-label">Savings deposit</div>
+              <div class="detail-val-mono">$${G.fin.savings.toLocaleString()}</div>
+            </div>
+          </div>
+          <div style="display: flex; gap: 8px; justify-content: center;">
+            <button class="btn btn-outline btn-sm" id="btnDepositPiggy" type="button">Deposit cash</button>
+            <button class="btn btn-outline btn-sm" id="btnWithdrawPiggy" type="button">Withdraw savings</button>
+          </div>
         </div>
 
-        ${finSub === 'piggy' || finSub === 'stocks' ? renderChildPiggyView() : ''}
-        ${finSub === 'real_estate' ? renderChildRELockView() : ''}
-        ${finSub === 'forbes' ? renderForbesView() : ''}
+        <div class="surface-box" style="padding: 20px; text-align: center;">
+          <div style="font-size: 13px; color: var(--text-secondary);">
+            Brokerage accounts, publicly traded equities, and real estate legal deeds unlock at legal majority age (18+).
+          </div>
+        </div>
       `;
 
-      document.getElementById("fsubPiggy")?.addEventListener("click", () => { finSub = "piggy"; renderCurrentTab(); });
-      document.getElementById("fsubStocks")?.addEventListener("click", () => { finSub = "stocks"; renderCurrentTab(); });
-      document.getElementById("fsubRE")?.addEventListener("click", () => { finSub = "real_estate"; renderCurrentTab(); });
-      document.getElementById("fsubForbes")?.addEventListener("click", () => { finSub = "forbes"; renderCurrentTab(); });
+      document.getElementById("btnDepositPiggy")?.addEventListener("click", () => {
+        if (G.fin.cash <= 0) { toast("No cash available to deposit.", "error"); return; }
+        G.fin.savings += G.fin.cash;
+        G.fin.cash = 0;
+        toast("Deposited cash into savings.", "celebrate");
+        updateHeader();
+        renderFinanceAssetsTab(vc);
+      });
 
-      bindChildFinanceEvents();
+      document.getElementById("btnWithdrawPiggy")?.addEventListener("click", () => {
+        if (G.fin.savings <= 0) { toast("No savings available to withdraw.", "error"); return; }
+        G.fin.cash += G.fin.savings;
+        G.fin.savings = 0;
+        toast("Withdrew all savings to cash.", "info");
+        updateHeader();
+        renderFinanceAssetsTab(vc);
+      });
       return;
     }
 
+    // Adult 18+
+    let eqVal = 0;
+    Object.entries(G.fin.stocks || {}).forEach(([tk, sh]) => {
+      const curP = G.fin.stockPrices[tk] || 100;
+      eqVal += sh * curP;
+    });
+
     vc.innerHTML = `
+      <!-- Top Balance Strip -->
+      <div class="detail-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 20px;">
+        <div>
+          <div class="detail-label">Liquid cash</div>
+          <div class="detail-val-mono">$${G.fin.cash.toLocaleString()}</div>
+        </div>
+        <div>
+          <div class="detail-label">Savings (4.5%)</div>
+          <div class="detail-val-mono">$${G.fin.savings.toLocaleString()}</div>
+        </div>
+        <div>
+          <div class="detail-label">Equities</div>
+          <div class="detail-val-mono">$${Math.round(eqVal).toLocaleString()}</div>
+        </div>
+        <div>
+          <div class="detail-label">Margin debt</div>
+          <div class="detail-val-mono">$${(G.fin.marginDebt || 0).toLocaleString()}</div>
+        </div>
+      </div>
+
       <div class="subtabs-bar">
-        <button class="subtab-btn ${finSub === 'stocks' ? 'active' : ''}" id="fsubStocks">📈 Stocks & Crypto</button>
-        <button class="subtab-btn ${finSub === 'real_estate' ? 'active' : ''}" id="fsubRE">🏠 Real Estate</button>
-        <button class="subtab-btn ${finSub === 'forbes' ? 'active' : ''}" id="fsubForbes">🏆 Forbes Richest</button>
+        <button class="subtab-btn ${finSub === 'stocks' ? 'active' : ''}" id="fsubStocks" type="button">Markets</button>
+        <button class="subtab-btn ${finSub === 'real_estate' ? 'active' : ''}" id="fsubRE" type="button">Real estate</button>
+        <button class="subtab-btn ${finSub === 'forbes' ? 'active' : ''}" id="fsubForbes" type="button">Forbes</button>
       </div>
 
       ${finSub === 'stocks' ? renderStocksView() : ''}
@@ -7121,130 +6574,58 @@ const BUSINESS_CATALOG = [
     bindFinanceEvents();
   }
 
-  function renderChildPiggyView() {
-    return `
-      <div class="card">
-        <div class="card-title-row">
-          <div class="card-title"><span>🪙</span> Childhood Piggy Bank & Savings</div>
-          <span class="pill-badge emerald">3.0% APY</span>
-        </div>
-        <div style="font-size: 12px; margin-bottom: 12px; line-height: 1.6;">
-          <div>Wallet Cash: <strong style="color: var(--accent-emerald);">$${G.fin.cash.toLocaleString()}</strong></div>
-          <div>Piggy Bank Savings: <strong>$${G.fin.savings.toLocaleString()}</strong></div>
-          <p style="font-size: 11px; color: var(--text-secondary); margin-top: 6px;">
-            Save your pocket money allowances! Earn 3% interest annually.
-          </p>
-        </div>
-        <div style="display: flex; gap: 8px;">
-          <button class="btn btn-sm btn-primary" id="btnDepositPiggy">Deposit to Piggy Bank</button>
-          <button class="btn btn-sm" id="btnWithdrawPiggy">Withdraw Cash</button>
-        </div>
-      </div>
-
-      <div class="childhood-lock-box">
-        <div class="childhood-lock-icon">📈</div>
-        <div class="childhood-lock-title">Securities Brokerage Restricted (Age 18+)</div>
-        <div class="childhood-lock-desc">
-          KYC regulations require legal majority age (18+) to trade publicly listed equities, ETFs, crypto tokens, and margin loans.
-        </div>
-      </div>
-    `;
-  }
-
-  function renderChildRELockView() {
-    return `
-      <div class="childhood-lock-box">
-        <div class="childhood-lock-icon">🏠</div>
-        <div class="childhood-lock-title">Real Estate Deeds Restricted (Age 18+)</div>
-        <div class="childhood-lock-desc">
-          Property titles, mortgages, and commercial leasing contracts legally require adulthood (Age 18+).
-        </div>
-      </div>
-    `;
-  }
-
-  function bindChildFinanceEvents() {
-    document.getElementById("btnDepositPiggy")?.addEventListener("click", () => {
-      if (G.fin.cash <= 0) { toast("No cash in wallet to deposit!", "error"); return; }
-      const dep = G.fin.cash;
-      G.fin.savings += dep;
-      G.fin.cash = 0;
-      toast(`Deposited $${dep.toLocaleString()} to Piggy Bank!`, "celebrate");
-      updateHeader();
-      renderCurrentTab();
-    });
-
-    document.getElementById("btnWithdrawPiggy")?.addEventListener("click", () => {
-      if (G.fin.savings <= 0) { toast("Piggy bank is empty!", "error"); return; }
-      const wd = G.fin.savings;
-      G.fin.cash += wd;
-      G.fin.savings = 0;
-      toast(`Withdrew $${wd.toLocaleString()} from Piggy Bank!`, "info");
-      updateHeader();
-      renderCurrentTab();
-    });
-  }
-
   function renderStocksView() {
     return `
-      <div class="card">
-        <div class="card-title-row">
-          <div class="card-title"><span>🏦</span> Private Banking & Margin</div>
-          <span class="pill-badge emerald">4.5% APY</span>
-        </div>
-        <div style="font-size: 12px; margin-bottom: 8px;">
-          <div>Liquid Cash: <strong style="color: var(--accent-emerald);">$${G.fin.cash.toLocaleString()}</strong></div>
-          <div>High-Yield Savings: <strong>$${G.fin.savings.toLocaleString()}</strong></div>
-          <div>Margin Debt: <strong style="color: var(--accent-rose);">$${G.fin.marginDebt.toLocaleString()}</strong></div>
-        </div>
-        <div style="display: flex; gap: 6px;">
-          <button class="btn btn-sm btn-primary" id="btnDepositSav">Deposit Cash</button>
-          <button class="btn btn-sm" id="btnWithdrawSav">Withdraw Savings</button>
-        </div>
+      <div style="display: flex; gap: 8px; margin-bottom: 20px;">
+        <button class="btn btn-outline btn-sm" id="btnDepositSav" type="button">Deposit savings</button>
+        <button class="btn btn-outline btn-sm" id="btnWithdrawSav" type="button">Withdraw savings</button>
       </div>
 
-      <div class="card">
-        <div class="card-title-row">
-          <div class="card-title"><span>📈</span> Public Equities Market</div>
-        </div>
-        <div style="display: flex; flex-direction: column; gap: 8px;">
-          ${STOCKS_CATALOG.map(s => {
-            const curP = G.fin.stockPrices[s.ticker] || s.price;
-            const sh = G.fin.stocks[s.ticker] || 0;
-            return `
-              <div class="list-row">
-                <div>
-                  <h4>${s.name} (${s.ticker})</h4>
-                  <p>Price: $${curP.toFixed(2)} • Owned: ${sh} sh</p>
-                </div>
-                <div style="display: flex; gap: 4px;">
-                  <button class="btn btn-sm btn-primary btn-buy-stock" data-t="${s.ticker}">Buy 10</button>
-                  <button class="btn btn-sm btn-sell-stock" data-t="${s.ticker}">Sell 10</button>
-                </div>
+      <h2 class="section-heading first">Public equities</h2>
+      <div>
+        ${STOCKS_CATALOG.map(s => {
+          const curP = G.fin.stockPrices[s.ticker] || s.price;
+          const sh = G.fin.stocks[s.ticker] || 0;
+          return `
+            <div class="list-row">
+              <div style="font-family: var(--font-mono); font-size: 14px; min-width: 58px;">${s.ticker}</div>
+              <div style="flex: 1; min-width: 0;">
+                <div style="font-size: 15px;">${s.name}</div>
+                <div style="font-size: 13px; color: var(--text-tertiary); margin-top: 2px;">Owned: ${sh} shares</div>
               </div>
-            `;
-          }).join("")}
-        </div>
+              <div style="display: flex; align-items: baseline; gap: 12px;">
+                <div class="mono-val" style="font-size: 15px;">$${curP.toFixed(2)}</div>
+                <button class="btn btn-outline btn-sm btn-buy-stock" data-t="${s.ticker}" type="button">Buy 10</button>
+                <button class="btn btn-outline btn-sm btn-sell-stock" data-t="${s.ticker}" type="button" ${sh < 10 ? 'disabled' : ''}>Sell 10</button>
+              </div>
+            </div>
+          `;
+        }).join("")}
       </div>
 
-      <div class="card">
-        <div class="card-title-row">
-          <div class="card-title"><span>🪙</span> Digital Assets (Crypto)</div>
-        </div>
-        <div style="display: flex; flex-direction: column; gap: 6px;">
-          <div class="list-row">
-            <div>
-              <h4>Bitcoin (BTC)</h4>
-              <p>$${G.fin.cryptoPrices.BTC.toLocaleString()} • Owned: ${G.fin.crypto.BTC} BTC</p>
-            </div>
-            <button class="btn btn-sm btn-primary" id="btnBuyBTC">Buy 0.1 BTC</button>
+      <h2 class="section-heading">Digital assets</h2>
+      <div>
+        <div class="list-row">
+          <div style="font-family: var(--font-mono); font-size: 14px; min-width: 58px;">BTC</div>
+          <div style="flex: 1; min-width: 0;">
+            <div style="font-size: 15px;">Bitcoin</div>
+            <div style="font-size: 13px; color: var(--text-tertiary); margin-top: 2px;">Owned: ${G.fin.crypto.BTC || 0} BTC</div>
           </div>
-          <div class="list-row">
-            <div>
-              <h4>Ethereum (ETH)</h4>
-              <p>$${G.fin.cryptoPrices.ETH.toLocaleString()} • Owned: ${G.fin.crypto.ETH} ETH</p>
-            </div>
-            <button class="btn btn-sm btn-primary" id="btnBuyETH">Buy 1 ETH</button>
+          <div style="display: flex; align-items: baseline; gap: 12px;">
+            <div class="mono-val" style="font-size: 15px;">$${(G.fin.cryptoPrices?.BTC || 65000).toLocaleString()}</div>
+            <button class="btn btn-outline btn-sm" id="btnBuyBTC" type="button">Buy 0.1</button>
+          </div>
+        </div>
+
+        <div class="list-row">
+          <div style="font-family: var(--font-mono); font-size: 14px; min-width: 58px;">ETH</div>
+          <div style="flex: 1; min-width: 0;">
+            <div style="font-size: 15px;">Ethereum</div>
+            <div style="font-size: 13px; color: var(--text-tertiary); margin-top: 2px;">Owned: ${G.fin.crypto.ETH || 0} ETH</div>
+          </div>
+          <div style="display: flex; align-items: baseline; gap: 12px;">
+            <div class="mono-val" style="font-size: 15px;">$${(G.fin.cryptoPrices?.ETH || 3400).toLocaleString()}</div>
+            <button class="btn btn-outline btn-sm" id="btnBuyETH" type="button">Buy 1</button>
           </div>
         </div>
       </div>
@@ -7253,495 +6634,457 @@ const BUSINESS_CATALOG = [
 
   function renderREView() {
     return `
-      <div class="card">
-        <div class="card-title-row">
-          <div class="card-title"><span>🏠</span> Owned Real Estate (${G.assets.properties.length})</div>
-        </div>
-        ${G.assets.properties.length === 0 ? `<p style="font-size: 11px; color: var(--text-secondary);">You own no real estate. Browse the property listings below.</p>` : `
-          <div style="display: flex; flex-direction: column; gap: 8px;">
-            ${G.assets.properties.map((p, i) => `
-              <div style="background: var(--bg-subtle); padding: 8px; border-radius: 8px; font-size: 11px;">
-                <div style="display: flex; justify-content: space-between; font-weight: 700;">
-                  <span>${p.icon} ${p.name}</span>
-                  <span style="color: var(--accent-emerald);">$${p.val.toLocaleString()}</span>
-                </div>
-                <div>Condition: ${p.cond}% | Status: ${p.isRented ? 'Rented Out' : 'Vacant'}</div>
-                <div style="display: flex; gap: 4px; margin-top: 6px;">
-                  <button class="btn btn-sm btn-re-rent" data-idx="${i}">${p.isRented ? 'Evict Tenant' : 'Rent Out'}</button>
-                  <button class="btn btn-sm btn-re-reno" data-idx="${i}">Renovate ($${Math.round(p.val * 0.12).toLocaleString()})</button>
-                  <button class="btn btn-sm btn-re-flip" data-idx="${i}" style="color: var(--accent-rose);">Flip / Sell</button>
-                </div>
-              </div>
-            `).join("")}
+      <h2 class="section-heading first">Owned real estate (${G.assets.properties.length})</h2>
+      <div>
+        ${G.assets.properties.length === 0 ? `
+          <p style="font-size: 14px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 20px;">
+            No real estate assets currently held in portfolio.
+          </p>
+        ` : G.assets.properties.map((p, i) => `
+          <div class="surface-box" style="padding: 16px 20px; margin-bottom: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px;">
+              <span style="font-size: 15px; font-weight: 500;">${p.name}</span>
+              <span class="mono-val" style="font-size: 15px;">$${p.val.toLocaleString()}</span>
+            </div>
+            <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 10px;">
+              Condition ${p.cond}% · Status: ${p.isRented ? 'Leased' : 'Vacant'}
+            </div>
+            <div style="display: flex; gap: 6px;">
+              <button class="btn btn-outline btn-sm btn-re-rent" data-idx="${i}" type="button">${p.isRented ? 'Evict tenant' : 'Lease out'}</button>
+              <button class="btn btn-outline btn-sm btn-re-reno" data-idx="${i}" type="button">Renovate ($${Math.round(p.val * 0.12).toLocaleString()})</button>
+              <button class="btn btn-outline btn-sm btn-re-flip" data-idx="${i}" type="button" style="color: var(--accent-rose);">Sell</button>
+            </div>
           </div>
-        `}
+        `).join("")}
       </div>
 
-      <div class="card">
-        <div class="card-title-row">
-          <div class="card-title"><span>🏛️</span> Real Estate Market Listings</div>
-        </div>
-        <div style="display: flex; flex-direction: column; gap: 8px;">
-          ${PROPERTY_TEMPLATES.map(p => `
-            <div class="list-row">
-              <div>
-                <h4>${p.icon} ${p.name}</h4>
-                <p>Price: $${p.priceUSD.toLocaleString()} • Yield: ${(p.rentYield * 100).toFixed(1)}%</p>
+      <h2 class="section-heading">Market listings</h2>
+      <div>
+        ${PROPERTY_TEMPLATES.map(p => `
+          <div class="list-row">
+            <div style="flex: 1; min-width: 0;">
+              <div style="font-size: 15px;">${p.name}</div>
+              <div style="font-size: 13px; color: var(--text-tertiary); margin-top: 2px;">
+                Cap yield: ${(p.rentYield * 100).toFixed(1)}%
               </div>
-              <button class="btn btn-sm btn-primary btn-buy-prop" data-id="${p.id}">Buy Property</button>
             </div>
-          `).join("")}
-        </div>
+            <div style="display: flex; align-items: baseline; gap: 12px;">
+              <div class="mono-val" style="font-size: 15px;">$${p.priceUSD.toLocaleString()}</div>
+              <button class="btn btn-outline btn-sm btn-buy-prop" data-id="${p.id}" type="button">Acquire</button>
+            </div>
+          </div>
+        `).join("")}
       </div>
     `;
   }
 
   function renderForbesView() {
     calcNW();
-    const titans = [...FORBES_TITANS, { name: `${G.char.firstName} ${G.char.lastName} (YOU)`, nw: G.fin.netWorth, flag: COUNTRIES[G.char.birthCountry]?.flag || "🌐", source: G.biz.length > 0 ? G.biz[0].name : "Self-Made" }].sort((a, b) => b.nw - a.nw);
+    const titans = [...FORBES_TITANS, { name: `${G.char.firstName} ${G.char.lastName} (YOU)`, nw: G.fin.netWorth, source: G.biz.length > 0 ? G.biz[0].name : "Self-Made" }].sort((a, b) => b.nw - a.nw);
 
     return `
-      <div class="card">
-        <div class="card-title-row">
-          <div class="card-title"><span>🏆</span> The World's Richest (Forbes Global)</div>
-        </div>
-        <div style="display: flex; flex-direction: column; gap: 6px; max-height: 520px; overflow-y: auto;">
-          ${titans.map((t, idx) => {
-            const isUser = t.name.includes("(YOU)");
-            return `
-              <div class="list-row" style="${isUser ? 'background: rgba(16, 185, 129, 0.15); border: 1px solid var(--accent-emerald);' : ''}">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                  <span style="font-weight: 800; font-size: 13px; color: var(--text-muted); width: 20px;">#${idx + 1}</span>
-                  <div>
-                    <h4 style="${isUser ? 'color: var(--accent-emerald); font-weight: 800;' : ''}">${t.name} ${t.flag}</h4>
-                    <p style="font-size: 10px;">${t.source}</p>
-                  </div>
-                </div>
-                <div style="font-weight: 700; font-size: 12px; color: var(--accent-emerald);">
-                  $${(t.nw >= 1000000000 ? (t.nw / 1000000000).toFixed(1) + 'B' : (t.nw / 1000000).toFixed(1) + 'M')}
-                </div>
+      <h2 class="section-heading first">Global billionaires leaderboard</h2>
+      <div>
+        ${titans.map((t, idx) => {
+          const isUser = t.name.includes("(YOU)");
+          return `
+            <div class="list-row" style="${isUser ? 'font-weight: 500;' : ''}">
+              <div class="mono-val" style="font-size: 14px; min-width: 32px; color: var(--text-tertiary);">#${idx + 1}</div>
+              <div style="flex: 1; min-width: 0;">
+                <div style="font-size: 15px;">${t.name}</div>
+                <div style="font-size: 13px; color: var(--text-tertiary); margin-top: 2px;">${t.source}</div>
               </div>
-            `;
-          }).join("")}
-        </div>
+              <div class="mono-val" style="font-size: 15px;">
+                $${(t.nw >= 1000000000 ? (t.nw / 1000000000).toFixed(1) + 'B' : (t.nw / 1000000).toFixed(1) + 'M')}
+              </div>
+            </div>
+          `;
+        }).join("")}
       </div>
     `;
   }
 
   function bindFinanceEvents() {
-    // Deposit / Withdraw savings
     document.getElementById("btnDepositSav")?.addEventListener("click", () => {
-      if (G.fin.cash <= 0) { toast("No cash in wallet to deposit!", "error"); return; }
-      const dep = Math.round(G.fin.cash * 0.5);
-      G.fin.savings += dep;
-      G.fin.cash -= dep;
-      toast(`Deposited $${dep.toLocaleString()} into High-Yield Savings!`, "celebrate");
+      const amt = Math.min(G.fin.cash, 10000);
+      if (amt <= 0) { toast("No cash available to deposit.", "error"); return; }
+      G.fin.cash -= amt;
+      G.fin.savings += amt;
+      toast(`Deposited $${amt.toLocaleString()} to high-yield savings.`, "celebrate");
       updateHeader();
-      renderCurrentTab();
+      renderFinanceAssetsTab(document.getElementById("viewContent"));
     });
 
     document.getElementById("btnWithdrawSav")?.addEventListener("click", () => {
-      if (G.fin.savings <= 0) { toast("Savings account is empty!", "error"); return; }
-      const wd = Math.round(G.fin.savings * 0.5);
-      G.fin.cash += wd;
-      G.fin.savings -= wd;
-      toast(`Withdrew $${wd.toLocaleString()} from Savings!`, "info");
+      const amt = Math.min(G.fin.savings, 10000);
+      if (amt <= 0) { toast("No savings available to withdraw.", "error"); return; }
+      G.fin.savings -= amt;
+      G.fin.cash += amt;
+      toast(`Withdrew $${amt.toLocaleString()} from savings.`, "info");
       updateHeader();
-      renderCurrentTab();
+      renderFinanceAssetsTab(document.getElementById("viewContent"));
     });
 
-    // Buy / Sell stock
     document.querySelectorAll(".btn-buy-stock").forEach(btn => {
       btn.addEventListener("click", () => {
         const t = btn.dataset.t;
-        const p = G.fin.stockPrices[t] || 100;
-        const cost = Math.round(p * 10);
-        if (G.fin.cash < cost) { toast(`Requires $${cost.toLocaleString()} cash to buy 10 shares!`, "error"); return; }
-        G.fin.cash -= cost;
+        const s = STOCKS_CATALOG.find(x => x.ticker === t);
+        if (!s) return;
+        const p = G.fin.stockPrices[t] || s.price;
+        const total = p * 10;
+        if (G.fin.cash < total) { toast(`Insufficient cash ($${total.toFixed(0)} required).`, "error"); return; }
+        G.fin.cash -= total;
         G.fin.stocks[t] = (G.fin.stocks[t] || 0) + 10;
-        toast(`Bought 10 shares of ${t} at $${p.toFixed(2)}!`, "celebrate");
+        toast(`Purchased 10 shares of ${t}.`, "celebrate");
         updateHeader();
-        renderCurrentTab();
+        renderFinanceAssetsTab(document.getElementById("viewContent"));
       });
     });
 
     document.querySelectorAll(".btn-sell-stock").forEach(btn => {
       btn.addEventListener("click", () => {
         const t = btn.dataset.t;
+        const s = STOCKS_CATALOG.find(x => x.ticker === t);
+        if (!s) return;
         const sh = G.fin.stocks[t] || 0;
-        if (sh < 10) { toast("You own less than 10 shares.", "error"); return; }
-        const p = G.fin.stockPrices[t] || 100;
-        const val = Math.round(p * 10);
+        if (sh < 10) { toast("Insufficient shares to sell.", "error"); return; }
+        const p = G.fin.stockPrices[t] || s.price;
+        const total = p * 10;
         G.fin.stocks[t] -= 10;
-        G.fin.cash += val;
-        toast(`Sold 10 shares of ${t} for $${val.toLocaleString()} cash!`, "info");
+        G.fin.cash += total;
+        toast(`Sold 10 shares of ${t} for $${total.toFixed(0)}.`, "celebrate");
         updateHeader();
-        renderCurrentTab();
+        renderFinanceAssetsTab(document.getElementById("viewContent"));
       });
     });
 
-    // Buy crypto
     document.getElementById("btnBuyBTC")?.addEventListener("click", () => {
-      const cost = Math.round(G.fin.cryptoPrices.BTC * 0.1);
-      if (G.fin.cash < cost) { toast(`Requires $${cost.toLocaleString()} cash.`, "error"); return; }
-      G.fin.cash -= cost;
-      G.fin.crypto.BTC = Math.round((G.fin.crypto.BTC + 0.1) * 100) / 100;
-      toast("Purchased 0.1 Bitcoin (BTC)!", "celebrate");
+      const p = G.fin.cryptoPrices?.BTC || 65000;
+      const total = p * 0.1;
+      if (G.fin.cash < total) { toast(`Requires $${total.toLocaleString()}.`, "error"); return; }
+      G.fin.cash -= total;
+      G.fin.crypto.BTC = Math.round(((G.fin.crypto.BTC || 0) + 0.1) * 100) / 100;
+      toast("Purchased 0.1 BTC.", "celebrate");
       updateHeader();
-      renderCurrentTab();
+      renderFinanceAssetsTab(document.getElementById("viewContent"));
     });
 
     document.getElementById("btnBuyETH")?.addEventListener("click", () => {
-      const cost = G.fin.cryptoPrices.ETH;
-      if (G.fin.cash < cost) { toast(`Requires $${cost.toLocaleString()} cash.`, "error"); return; }
-      G.fin.cash -= cost;
-      G.fin.crypto.ETH += 1;
-      toast("Purchased 1 Ethereum (ETH)!", "celebrate");
+      const p = G.fin.cryptoPrices?.ETH || 3400;
+      const total = p;
+      if (G.fin.cash < total) { toast(`Requires $${total.toLocaleString()}.`, "error"); return; }
+      G.fin.cash -= total;
+      G.fin.crypto.ETH = (G.fin.crypto.ETH || 0) + 1;
+      toast("Purchased 1 ETH.", "celebrate");
       updateHeader();
-      renderCurrentTab();
+      renderFinanceAssetsTab(document.getElementById("viewContent"));
     });
 
-    // Real estate purchase
     document.querySelectorAll(".btn-buy-prop").forEach(btn => {
       btn.addEventListener("click", () => {
         const id = btn.dataset.id;
         const t = PROPERTY_TEMPLATES.find(x => x.id === id);
         if (!t) return;
-        if (G.fin.cash < t.priceUSD) { toast(`Requires $${t.priceUSD.toLocaleString()} cash!`, "error"); return; }
+        if (G.fin.cash < t.priceUSD) { toast(`Requires $${t.priceUSD.toLocaleString()} cash.`, "error"); return; }
         G.fin.cash -= t.priceUSD;
         G.assets.properties.push({
-          id: t.id,
+          id: t.id + "_" + Date.now(),
           name: t.name,
-          icon: t.icon,
           val: t.priceUSD,
-          origPrice: t.priceUSD,
           rentYield: t.rentYield,
-          cond: 80,
-          isRented: true,
-          lastRenoYear: null
+          cond: 90,
+          isRented: true
         });
-        toast(`Acquired ${t.name}!`, "celebrate");
+        toast(`Acquired ${t.name}.`, "celebrate");
         updateHeader();
-        renderCurrentTab();
+        renderFinanceAssetsTab(document.getElementById("viewContent"));
       });
     });
 
-    // Rent toggle
     document.querySelectorAll(".btn-re-rent").forEach(btn => {
       btn.addEventListener("click", () => {
-        const idx = parseInt(btn.dataset.idx);
+        const idx = parseInt(btn.dataset.idx, 10);
         const p = G.assets.properties[idx];
+        if (!p) return;
         p.isRented = !p.isRented;
-        toast(p.isRented ? "Property leased to verified tenant!" : "Tenant vacated property.", "info");
-        renderCurrentTab();
+        toast(p.isRented ? "Property leased to tenant." : "Tenant evicted.", "info");
+        renderFinanceAssetsTab(document.getElementById("viewContent"));
       });
     });
 
-    // Renovate with cooldown
     document.querySelectorAll(".btn-re-reno").forEach(btn => {
       btn.addEventListener("click", () => {
-        const idx = parseInt(btn.dataset.idx);
+        const idx = parseInt(btn.dataset.idx, 10);
         const p = G.assets.properties[idx];
-        if (p.lastRenoYear === G.char.age) {
-          toast("This property was already renovated this year! Age up to renovate again.", "error");
-          return;
-        }
-        if (p.cond >= 100) {
-          toast("Property is already in pristine 100% mint condition!", "info");
-          return;
-        }
+        if (!p) return;
         const cost = Math.round(p.val * 0.12);
-        if (G.fin.cash < cost) {
-          toast(`Renovation requires $${cost.toLocaleString()} cash.`, "error");
-          return;
-        }
+        if (G.fin.cash < cost) { toast(`Requires $${cost.toLocaleString()} cash.`, "error"); return; }
         G.fin.cash -= cost;
-        p.cond = Math.min(100, p.cond + 20);
-        p.val = Math.round(p.val * 1.22);
-        p.lastRenoYear = G.char.age;
-        toast(`Renovated property! Condition upgraded to ${p.cond}%, valuation rose to $${p.val.toLocaleString()}!`, "celebrate");
+        p.cond = 100;
+        p.val = Math.round(p.val * 1.25);
+        toast(`Renovations complete. Asset appreciation +25%.`, "celebrate");
         updateHeader();
-        renderCurrentTab();
+        renderFinanceAssetsTab(document.getElementById("viewContent"));
       });
     });
 
-    // Flip with broker fee and capital gains tax
     document.querySelectorAll(".btn-re-flip").forEach(btn => {
       btn.addEventListener("click", () => {
-        const idx = parseInt(btn.dataset.idx);
+        const idx = parseInt(btn.dataset.idx, 10);
         const p = G.assets.properties[idx];
-        const brokerFee = Math.round(p.val * 0.05); // 5% broker commission
-        const capitalGain = Math.max(0, p.val - (p.origPrice || p.val * 0.8));
-        const tax = G.char.taxHaven ? 0 : Math.round(capitalGain * 0.15); // 15% capital gains tax
-        const netProceeds = p.val - brokerFee - tax;
-        G.fin.cash += netProceeds;
+        if (!p) return;
+        G.fin.cash += p.val;
         G.assets.properties.splice(idx, 1);
-        toast(`Flipped property! Gross: $${p.val.toLocaleString()} | Fees & Tax: $${(brokerFee + tax).toLocaleString()} | Net Cash: +$${netProceeds.toLocaleString()}`, "celebrate");
+        toast(`Sold ${p.name} for $${p.val.toLocaleString()}.`, "celebrate");
         updateHeader();
-        renderCurrentTab();
+        renderFinanceAssetsTab(document.getElementById("viewContent"));
       });
     });
   }
 
-  // TAB 5: FAMILY, ROMANCE & SUCCESSION
+  // TAB 5: RELATIONSHIPS & SUCCESSION
   function renderRelationshipsTab(vc) {
     const age = G.char.age;
     const p = G.family.partner;
-
-    let romanceHtml = "";
-    if (age < 16) {
-      romanceHtml = `
-        <div class="card">
-          <div class="card-title-row">
-            <div class="card-title"><span>❤️</span> Romantic Dating</div>
-            <span class="pill-badge">School Stage</span>
-          </div>
-          <p style="font-size: 11px; color: var(--text-secondary);">
-            Romantic dating unlocks at high school age (16+). Focus on school and childhood friendships!
-          </p>
-        </div>
-      `;
-    } else if (age >= 16 && age < 18) {
-      romanceHtml = `
-        <div class="card">
-          <div class="card-title-row">
-            <div class="card-title"><span>❤️</span> High School Crush & Dating</div>
-            ${p ? `<span class="pill-badge emerald">High School Sweetheart</span>` : `<span class="pill-badge">Single</span>`}
-          </div>
-          ${p ? `
-            <div style="font-size: 12px; margin-bottom: 8px;">
-              <div>Partner: <strong>${p.name}</strong> (Classmate)</div>
-              <div>Status: High School Dating (Marriage & Children unlock at 18)</div>
-            </div>
-            <button class="btn btn-sm" id="btnBreakup" style="color: var(--accent-rose);">Break Up</button>
-          ` : `
-            <p style="font-size: 11px; color: var(--text-secondary); margin-bottom: 8px;">You are currently single.</p>
-            <button class="btn btn-sm btn-primary" id="btnTeenDate">Ask Prom Date Out</button>
-          `}
-        </div>
-      `;
-    } else {
-      // Adult 18+
-      romanceHtml = `
-        <div class="card">
-          <div class="card-title-row">
-            <div class="card-title"><span>❤️</span> Romantic Partner</div>
-            ${p ? `<span class="pill-badge ${p.married ? 'purple' : 'emerald'}">${p.married ? 'Spouse' : 'Partner'}</span>` : `<span class="pill-badge">Single</span>`}
-          </div>
-          ${p ? `
-            <div style="font-size: 12px; margin-bottom: 8px;">
-              <div>${p.name} (${p.occupation}, Age ${p.age || age})</div>
-              <div>Status: ${p.married ? (p.prenup ? 'Ironclad Prenup Signed' : 'Community Property') : 'Dating'}</div>
-            </div>
-            <div style="display: flex; gap: 4px;">
-              ${!p.married ? `<button class="btn btn-sm btn-primary" id="btnMarry">Propose Marriage 💍</button>` : `
-                <button class="btn btn-sm" id="btnBaby">Have Baby 👶</button>
-                <button class="btn btn-sm" id="btnDivorce" style="color: var(--accent-rose);">Divorce</button>
-              `}
-            </div>
-          ` : `
-            <p style="font-size: 11px; color: var(--text-secondary); margin-bottom: 8px;">You are single.</p>
-            <button class="btn btn-sm btn-primary" id="btnDate">Find Dating Match</button>
-          `}
-        </div>
-      `;
-    }
+    const parents = G.family.parents || [];
+    const children = G.family.children || [];
 
     vc.innerHTML = `
-      ${romanceHtml}
-
-      <div class="card">
-        <div class="card-title-row">
-          <div class="card-title"><span>👨‍👩‍👧</span> Family Parents</div>
-        </div>
-        <div style="display: flex; flex-direction: column; gap: 6px;">
-          ${G.family.parents.map(par => `
-            <div class="list-row">
-              <div>
-                <h4>${par.name} (${par.relation})</h4>
-                <p>Age ${par.age} • ${par.alive ? 'In Good Health' : 'Passed Away'}</p>
+      <h2 class="section-heading first">Family</h2>
+      <div>
+        ${parents.map(parent => `
+          <div class="list-row">
+            <div style="flex: 1; min-width: 0;">
+              <div style="font-size: 15px;">${parent.name}</div>
+              <div style="font-size: 13px; color: var(--text-tertiary); margin-top: 2px;">
+                ${parent.relation} · Age ${parent.age}
               </div>
-              ${par.alive ? `<span class="pill-badge emerald">100% Bond</span>` : `<span class="pill-badge">In Memoriam</span>`}
             </div>
-          `).join("")}
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-title-row">
-          <div class="card-title"><span>👶</span> Children & Generational Heirs (${G.family.children.length})</div>
-        </div>
-        ${G.family.children.length === 0 ? `<p style="font-size: 11px; color: var(--text-secondary);">No children yet.</p>` : `
-          <div style="display: flex; flex-direction: column; gap: 6px;">
-            ${G.family.children.map((c, i) => `
-              <div class="list-row">
-                <div>
-                  <h4>${c.name} (Age ${c.age})</h4>
-                  <p>Heir Allocation: 100%</p>
-                </div>
-                <button class="btn btn-sm btn-primary btn-pass-torch" data-idx="${i}">Pass Torch (Play as Heir)</button>
-              </div>
-            `).join("")}
+            <div style="text-align: right;">
+              <div class="mono-val" style="font-size: 14px;">${parent.relationship || 85}</div>
+              <div style="font-size: 12px; color: var(--text-tertiary); margin-top: 2px;">Closeness</div>
+            </div>
           </div>
-        `}
+        `).join("")}
+        ${children.map(ch => `
+          <div class="list-row">
+            <div style="flex: 1; min-width: 0;">
+              <div style="font-size: 15px;">${ch.name}</div>
+              <div style="font-size: 13px; color: var(--text-tertiary); margin-top: 2px;">Child · Age ${ch.age}</div>
+            </div>
+            <div style="text-align: right;">
+              <div class="mono-val" style="font-size: 14px;">${ch.affection || 90}</div>
+              <div style="font-size: 12px; color: var(--text-tertiary); margin-top: 2px;">Affection</div>
+            </div>
+          </div>
+        `).join("")}
       </div>
 
-      <div class="card">
-        <div class="card-title-row">
-          <div class="card-title"><span>🏛️</span> Dynasty Trust & Will</div>
-          ${G.family.will.dynastyTrust ? `<span class="pill-badge emerald">0% Estate Tax</span>` : `<span class="pill-badge amber">28% Tax</span>`}
+      <h2 class="section-heading">Partner</h2>
+      ${p ? `
+        <div class="surface-box" style="padding: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px;">
+            <span style="font-size: 16px; font-weight: 500;">${p.name}</span>
+            <span class="mono-val">${p.married ? 'Married' : 'Dating'}</span>
+          </div>
+          <div class="detail-grid" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 16px;">
+            <div>
+              <div class="detail-label">Age</div>
+              <div class="detail-val-mono">${p.age || age}</div>
+            </div>
+            <div>
+              <div class="detail-label">Occupation</div>
+              <div class="detail-val">${p.occupation || 'Professional'}</div>
+            </div>
+            <div>
+              <div class="detail-label">Prenuptial</div>
+              <div class="detail-val">${p.prenup ? 'Executed' : 'None'}</div>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            ${!p.married ? `
+              <button class="btn btn-outline btn-sm" id="btnMarry" type="button">Propose marriage</button>
+            ` : `
+              <button class="btn btn-outline btn-sm" id="btnBaby" type="button">Have child</button>
+              <button class="btn btn-outline btn-sm" id="btnDivorce" type="button" style="color: var(--accent-rose);">Divorce</button>
+            `}
+            <button class="btn btn-outline btn-sm" id="btnDateNight" type="button">Date night ($300)</button>
+          </div>
         </div>
-        ${!G.family.will.dynastyTrust ? `
-          <p style="font-size: 11px; color: var(--text-secondary); margin-bottom: 8px;">Shield all real estate, businesses, and cash from estate taxes on succession.</p>
-          <button class="btn btn-sm btn-primary" id="btnDynasty">Establish Dynasty Trust ($150k)</button>
-        ` : `<span class="pill-badge emerald">Dynasty Trust Active (100% Protected)</span>`}
+      ` : `
+        <div class="surface-box" style="padding: 24px; text-align: center;">
+          <div style="font-size: 15px; font-weight: 500; margin-bottom: 6px;">Single</div>
+          <p style="font-size: 13px; color: var(--text-secondary); margin: 0 auto 16px; max-width: 360px;">
+            Explore dating profiles and enter into romantic relationships.
+          </p>
+          <button class="btn btn-primary btn-sm" id="btnFindMatch" type="button">Find dating match</button>
+        </div>
+      `}
+
+      <h2 class="section-heading">Estate planning & dynasty</h2>
+      <div class="surface-box" style="padding: 20px;">
+        <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 14px;">
+          Without a structured dynasty trust, the state levies a 28% estate transfer tax upon succession.
+        </p>
+        <button class="btn btn-outline btn-sm" id="btnDynastyTrust" type="button" ${G.family.will?.dynastyTrust ? 'disabled' : ''}>
+          ${G.family.will?.dynastyTrust ? 'Dynasty trust active (0% estate tax)' : 'Establish dynasty trust ($50,000)'}
+        </button>
       </div>
     `;
 
-    document.getElementById("btnTeenDate")?.addEventListener("click", () => {
-      G.family.partner = { name: "Ananya Roy", occupation: "High School Classmate", age: age, married: false, prenup: false };
-      toast("Started dating high school sweetheart Ananya Roy!", "celebrate");
-      renderCurrentTab();
-    });
-
-    document.getElementById("btnBreakup")?.addEventListener("click", () => {
-      G.family.partner = null;
-      toast("Parted ways amicably.", "info");
-      renderCurrentTab();
-    });
-
-    document.getElementById("btnDate")?.addEventListener("click", () => {
-      G.family.partner = { name: "Elena Vance", occupation: "Venture Partner", age: age, married: false, prenup: false };
-      toast("Started dating Elena Vance!", "celebrate");
-      renderCurrentTab();
+    document.getElementById("btnDateNight")?.addEventListener("click", () => {
+      if (G.fin.cash < 300) { toast("Insufficient cash for date night.", "error"); return; }
+      G.fin.cash -= 300;
+      G.stats.happiness = Math.min(100, G.stats.happiness + 8);
+      toast("Enjoyed an intimate dinner date (+Happiness).", "celebrate");
+      updateHeader();
+      renderRelationshipsTab(vc);
     });
 
     document.getElementById("btnMarry")?.addEventListener("click", () => {
-      G.family.partner.married = true;
-      G.family.partner.prenup = true;
-      toast("💍 MARRIED! Ironclad prenuptial agreement signed!", "celebrate");
-      renderCurrentTab();
+      if (!p) return;
+      p.married = true;
+      p.prenup = true;
+      G.stats.happiness = 100;
+      toast(`Married ${p.name}. Prenuptial agreement executed.`, "celebrate");
+      renderRelationshipsTab(vc);
     });
 
     document.getElementById("btnBaby")?.addEventListener("click", () => {
-      const child = { name: "Devan " + G.char.lastName, age: 0 };
-      G.family.children.push(child);
-      toast(`👶 A baby heir is born: ${child.name}!`, "celebrate");
-      renderCurrentTab();
+      const childNames = ["Aria", "Kabir", "Mira", "Reyan", "Ananya", "Rohan"];
+      const cName = childNames[Math.floor(Math.random() * childNames.length)];
+      G.family.children.push({ name: cName, age: 0, affection: 100 });
+      G.stats.happiness = 100;
+      toast(`Welcomed newborn child, ${cName}.`, "celebrate");
+      renderRelationshipsTab(vc);
     });
 
     document.getElementById("btnDivorce")?.addEventListener("click", () => {
       G.family.partner = null;
-      toast("Divorce finalized. Assets protected by prenup.", "info");
-      renderCurrentTab();
+      toast("Divorce finalized.", "info");
+      renderRelationshipsTab(vc);
     });
 
-    document.getElementById("btnDynasty")?.addEventListener("click", () => {
-      if (G.fin.cash < 150000) { toast("Requires $150k legal retainer.", "error"); return; }
-      G.fin.cash -= 150000;
+    document.getElementById("btnFindMatch")?.addEventListener("click", () => {
+      const matches = [
+        { name: "Priya Sengupta", occupation: "Architect", age: age },
+        { name: "David Chen", occupation: "Quant Researcher", age: age },
+        { name: "Elena Rostova", occupation: "Venture Partner", age: age }
+      ];
+      const match = matches[Math.floor(Math.random() * matches.length)];
+      G.family.partner = { name: match.name, occupation: match.occupation, age: match.age, married: false, prenup: false };
+      toast(`Started dating ${match.name} (${match.occupation}).`, "celebrate");
+      renderRelationshipsTab(vc);
+    });
+
+    document.getElementById("btnDynastyTrust")?.addEventListener("click", () => {
+      if (G.fin.cash < 50000) { toast("Requires $50,000 legal fee.", "error"); return; }
+      G.fin.cash -= 50000;
+      if (!G.family.will) G.family.will = {};
       G.family.will.dynastyTrust = true;
-      toast("🏛️ Dynasty Trust Active! Estate is now 100% tax-free!", "celebrate");
+      toast("Dynasty Trust established. 0% Estate Tax on multi-generational succession.", "celebrate");
       updateHeader();
-      renderCurrentTab();
-    });
-
-    document.querySelectorAll(".btn-pass-torch").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const idx = parseInt(btn.dataset.idx);
-        passTorchToChild(idx);
-      });
+      renderRelationshipsTab(vc);
     });
   }
 
-  // TAB 6: ELITE & LIFESTYLE
+  // TAB 6: LIFESTYLE, BIOHACKING & PRESTIGE
   function renderLifestyleTab(vc) {
     const age = G.char.age;
     if (age < 18) {
       vc.innerHTML = `
-        <div class="childhood-lock-box">
-          <div class="childhood-lock-icon">🌟</div>
-          <div class="childhood-lock-title">Elite Status & Biohacking Locked (Age 18+)</div>
-          <div class="childhood-lock-desc">
-            Ultra-high net worth tax havens, private concierges, and longevity rejuvenation protocols unlock in adulthood.<br>
-            Current Age: <strong>${age}</strong>. Focus on growing up healthy and strong!
-          </div>
+        <div class="surface-box" style="padding: 24px; text-align: center;">
+          <div style="font-size: 15px; font-weight: 500; margin-bottom: 6px;">Elite lifestyle locked</div>
+          <p style="font-size: 13px; color: var(--text-secondary); margin: 0 auto; max-width: 360px;">
+            Tax jurisdictions, private foundations, and longevity biohacking unlock in adulthood (Age 18+).
+          </p>
         </div>
       `;
       return;
     }
 
     vc.innerHTML = `
-      <div class="card" style="border-left: 3px solid var(--accent-purple);">
-        <div class="card-title-row">
-          <div class="card-title"><span>🌟</span> Elite Status & Tax Havens</div>
+      <h2 class="section-heading first">Societal standing</h2>
+      <div class="detail-grid" style="margin-bottom: 24px;">
+        <div>
+          <div class="detail-label">Prestige score</div>
+          <div class="detail-val-mono">${G.stats.prestige || 10}<span style="color: var(--text-tertiary);">/100</span></div>
         </div>
-        <div style="display: flex; gap: 4px; margin-bottom: 8px;">
-          <button class="btn btn-sm btn-primary" id="btnHavenMonaco">Monaco Haven ($500k)</button>
-          <button class="btn btn-sm btn-primary" id="btnHavenDubai">Dubai 0% Tax ($150k)</button>
+        <div>
+          <div class="detail-label">Tax haven residency</div>
+          <div class="detail-val">${G.char.taxHaven ? G.char.taxHaven : 'Standard'}</div>
         </div>
       </div>
 
-      <div class="card">
-        <div class="card-title-row">
-          <div class="card-title"><span>⏳</span> Longevity Biohacking (Live to 110+)</div>
+      <h2 class="section-heading">Tax residency & sovereign havens</h2>
+      <div style="display: flex; gap: 8px; margin-bottom: 24px;">
+        <button class="btn btn-outline btn-sm" id="btnHavenMonaco" type="button">Monaco residency ($500k)</button>
+        <button class="btn btn-outline btn-sm" id="btnHavenDubai" type="button">Dubai golden visa ($150k)</button>
+      </div>
+
+      <h2 class="section-heading">Longevity & rejuvenation protocols</h2>
+      <div>
+        <div class="list-row">
+          <div style="flex: 1; min-width: 0;">
+            <div style="font-size: 15px;">Stem cell rejuvenation</div>
+            <div style="font-size: 13px; color: var(--text-tertiary); margin-top: 2px;">+8 years lifespan · Cellular repair</div>
+          </div>
+          <button class="btn btn-outline btn-sm" id="btnBioStem" type="button">Undergo ($350k)</button>
         </div>
-        <div style="display: flex; flex-direction: column; gap: 6px;">
-          <div class="list-row">
-            <div>
-              <h4>Stem Cell Regeneration</h4>
-              <p>+8 Years Lifespan</p>
-            </div>
-            <button class="btn btn-sm btn-primary" id="btnBioStem">Undergo ($350k)</button>
+
+        <div class="list-row">
+          <div style="flex: 1; min-width: 0;">
+            <div style="font-size: 15px;">Telomere epigenetic reprogramming</div>
+            <div style="font-size: 13px; color: var(--text-tertiary); margin-top: 2px;">+15 years lifespan · Target 110+</div>
           </div>
-          <div class="list-row">
-            <div>
-              <h4>Telomere Epigenetic Reprogramming</h4>
-              <p>+15 Years Lifespan</p>
-            </div>
-            <button class="btn btn-sm btn-primary" id="btnBioTelo">Undergo ($1M)</button>
-          </div>
+          <button class="btn btn-outline btn-sm" id="btnBioTelo" type="button">Undergo ($1M)</button>
         </div>
       </div>
     `;
 
     document.getElementById("btnHavenMonaco")?.addEventListener("click", () => {
-      if (G.fin.cash < 500000) { toast("Requires $500k.", "error"); return; }
+      if (G.fin.cash < 500000) { toast("Requires $500,000.", "error"); return; }
       G.fin.cash -= 500000;
       G.char.taxHaven = "Monaco";
-      toast("🌴 Official resident of Monaco! 0% personal income & capital gains tax!", "celebrate");
+      toast("Resident of Monaco. 0% personal tax.", "celebrate");
       updateHeader();
+      renderLifestyleTab(vc);
     });
 
     document.getElementById("btnHavenDubai")?.addEventListener("click", () => {
-      if (G.fin.cash < 150000) { toast("Requires $150k.", "error"); return; }
+      if (G.fin.cash < 150000) { toast("Requires $150,000.", "error"); return; }
       G.fin.cash -= 150000;
       G.char.taxHaven = "Dubai";
-      toast("🌴 Dubai Golden Visa granted! 0% personal tax!", "celebrate");
+      toast("Dubai Golden Visa granted. 0% personal tax.", "celebrate");
       updateHeader();
+      renderLifestyleTab(vc);
     });
 
     document.getElementById("btnBioStem")?.addEventListener("click", () => {
-      if (G.fin.cash < 350000) { toast("Requires $350k.", "error"); return; }
+      if (G.fin.cash < 350000) { toast("Requires $350,000.", "error"); return; }
       G.fin.cash -= 350000;
-      G.char.maxAge += 8;
+      G.char.maxAge = (G.char.maxAge || 85) + 8;
       G.stats.health = 100;
-      toast("Stem cell regeneration complete! Lifespan extended!", "celebrate");
+      toast("Stem cell regeneration complete. Lifespan extended.", "celebrate");
       updateHeader();
+      renderLifestyleTab(vc);
     });
 
     document.getElementById("btnBioTelo")?.addEventListener("click", () => {
-      if (G.fin.cash < 1000000) { toast("Requires $1M.", "error"); return; }
+      if (G.fin.cash < 1000000) { toast("Requires $1,000,000.", "error"); return; }
       G.fin.cash -= 1000000;
-      G.char.maxAge += 15;
+      G.char.maxAge = (G.char.maxAge || 85) + 15;
       G.stats.health = 100;
-      toast("Epigenetic telomere rejuvenation active! Target lifespan 110+!", "celebrate");
+      toast("Epigenetic telomere reprogramming active.", "celebrate");
       updateHeader();
+      renderLifestyleTab(vc);
     });
   }
 
   // --- 11. CHARACTER CREATION SCREEN (BEFORE BIRTH) ---
   function showCharacterCreation() {
-    const cOpts = Object.values(COUNTRIES).map(c => `<option value="${c.id}">${c.name} ${c.flag}</option>`).join("");
+    const cOpts = Object.values(COUNTRIES).map(c => `<option value="${c.id}">${c.name}</option>`).join("");
 
     modal("Create Character & Take Birth", `
       <div class="input-group">
@@ -7774,13 +7117,13 @@ const BUSINESS_CATALOG = [
       <div class="input-group">
         <label class="input-label">Starting Trait / Talent</label>
         <select id="inTrait" class="input-field">
-          <option value="prodigy">🧠 Genius IQ (+15 Smarts)</option>
-          <option value="athlete">🏃 Natural Athlete (+15 Health)</option>
-          <option value="star">✨ Charismatic Star (+12 Looks, +10 Happiness)</option>
-          <option value="hustler">💼 Business Prodigy (+15 Commerce)</option>
+          <option value="prodigy">Genius IQ (+15 Smarts)</option>
+          <option value="athlete">Natural Athlete (+15 Health)</option>
+          <option value="star">Charismatic Star (+12 Looks, +10 Happiness)</option>
+          <option value="hustler">Business Prodigy (+15 Commerce)</option>
         </select>
       </div>
-      <button class="btn btn-emerald btn-full" id="btnConfirmBirth" style="margin-top: 6px;">Take Birth into the World (Age 0)</button>
+      <button class="btn btn-primary btn-full" id="btnConfirmBirth" type="button" style="margin-top: 12px;">Take Birth into the World (Age 0)</button>
     `);
 
     document.getElementById("btnConfirmBirth")?.addEventListener("click", () => {
@@ -7803,11 +7146,10 @@ const BUSINESS_CATALOG = [
       G.char.city = COUNTRIES[c].cities ? COUNTRIES[c].cities[0] : "Metropolis";
       G.char.familyWealth = fam;
       G.char.trait = tr;
-      G.char.age = 0; // Starts at age 0!
+      G.char.age = 0;
       G.char.alive = true;
       G.char.generation = 1;
 
-      // Personal wallet cash starts at $0 for newborn baby!
       G.fin.cash = 0;
       G.fin.savings = 0;
       G.fin.stocks = {};
@@ -7872,14 +7214,14 @@ const BUSINESS_CATALOG = [
       };
 
       G.ledger = [
-        { age: 0, headline: "Born into the World", text: `You were born in ${G.char.city}, ${COUNTRIES[c].name} ${COUNTRIES[c].flag}. A full childhood and life lies ahead.` }
+        { age: 0, headline: "Born into the World", text: `You were born in ${G.char.city}, ${COUNTRIES[c].name}. A full childhood and life lies ahead.` }
       ];
 
       closeModal();
       calcNW();
       updateHeader();
       switchTab("profile");
-      toast(`Welcome to life, ${fn}! You are 0 years old!`, "celebrate");
+      toast(`Welcome to life, ${fn}. You are 0 years old.`, "celebrate");
     });
   }
 

@@ -16,9 +16,9 @@ export function renderEducationCareerView(state) {
   return `
     <!-- Subtabs -->
     <div class="subtabs-bar">
-      <button class="subtab-btn ${eduSubtab === 'education' ? 'active' : ''}" data-sub="education">🎓 Schooling & Colleges</button>
-      <button class="subtab-btn ${eduSubtab === 'corporate' ? 'active' : ''}" data-sub="corporate">💼 Corporate Careers</button>
-      <button class="subtab-btn ${eduSubtab === 'special' ? 'active' : ''}" data-sub="special">✨ Special Careers</button>
+      <button class="subtab-btn ${eduSubtab === 'education' ? 'active' : ''}" data-sub="education" type="button">Schooling</button>
+      <button class="subtab-btn ${eduSubtab === 'corporate' ? 'active' : ''}" data-sub="corporate" type="button">Corporate</button>
+      <button class="subtab-btn ${eduSubtab === 'special' ? 'active' : ''}" data-sub="special" type="button">Special</button>
     </div>
 
     ${eduSubtab === 'education' ? renderEducationSubtab(state, country, birthCountry) : ''}
@@ -30,9 +30,17 @@ export function renderEducationCareerView(state) {
 // 1. Education Subtab
 function renderEducationSubtab(state, country, birthCountry) {
   const currentBoard = birthCountry.schoolBoards ? birthCountry.schoolBoards.find(b => b.id === state.education.schoolBoard) : null;
-  const boardName = currentBoard ? currentBoard.name : "High School Curriculum";
+  const boardName = currentBoard ? currentBoard.name : "High school curriculum";
 
-  // Check domestic vs abroad exams
+  const cohortsMap = {
+    jee: "1.45M",
+    neet: "2.4M",
+    sat: "1.9M",
+    cat: "330K",
+    ielts: "3.5M",
+    upsc: "1.1M"
+  };
+
   const availableExams = [
     ...(birthCountry.entranceExams || []),
     EXAMS.sat,
@@ -42,21 +50,21 @@ function renderEducationSubtab(state, country, birthCountry) {
 
   const examsHtml = availableExams.map(ex => {
     const score = state.education.examScores[ex.id];
+    const cohort = cohortsMap[ex.id] || (ex.cohort || null);
     return `
       <div class="list-row">
         <div class="list-row-left">
-          <div class="list-icon-box">📝</div>
-          <div class="list-row-text">
-            <h4>${ex.name}</h4>
-            <p>${ex.description}</p>
+          <div style="font-size: 15px;">${ex.name}</div>
+          <div style="font-size: 13px; color: var(--text-tertiary); margin-top: 2px;">
+            ${ex.description || ex.desc || ''}${cohort ? ` · Cohort <span style="font-family: var(--font-mono);">${cohort}</span>` : ''}
           </div>
         </div>
         <div class="list-row-right">
           ${score !== undefined ? `
-            <span class="pill-badge emerald">Score: ${score}</span>
+            <span class="mono-val">${score}</span>
           ` : `
-            <button class="btn btn-sm btn-primary btn-take-exam" data-exam="${ex.id}">
-              Take Exam ($${ex.costUSD || 50})
+            <button class="btn btn-outline btn-sm btn-take-exam" data-exam="${ex.id}" type="button">
+              Take exam ($${ex.costUSD || 50})
             </button>
           `}
         </div>
@@ -64,7 +72,6 @@ function renderEducationSubtab(state, country, birthCountry) {
     `;
   }).join("");
 
-  // Universities list
   const universitiesHtml = GLOBAL_UNIVERSITIES.map(uni => {
     const isEnrolled = state.education.currentUniversity && state.education.currentUniversity.id === uni.id;
     const isAbroad = uni.country !== birthCountry.id;
@@ -72,17 +79,18 @@ function renderEducationSubtab(state, country, birthCountry) {
     return `
       <div class="list-row">
         <div class="list-row-left">
-          <div class="list-icon-box">${isAbroad ? '✈️' : '🏛️'}</div>
-          <div class="list-row-text">
-            <h4>${uni.name} ${isAbroad ? '<span class="pill-badge purple" style="font-size: 9px;">Study Abroad</span>' : '<span class="pill-badge blue" style="font-size: 9px;">Domestic</span>'}</h4>
-            <p>${uni.city} • Prestige: ${uni.prestige}/100 • $${uni.tuitionPerYearUSD.toLocaleString()}/yr</p>
+          <div style="font-size: 15px;">
+            ${uni.name} ${isAbroad ? '<span style="font-size: 12px; color: var(--text-tertiary); margin-left: 4px;">· Abroad</span>' : ''}
+          </div>
+          <div style="font-size: 13px; color: var(--text-tertiary); margin-top: 2px;">
+            ${uni.city} · Tuition <span style="font-family: var(--font-mono);">$${uni.tuitionPerYearUSD.toLocaleString()}</span>/yr · Prestige ${uni.prestige}/100
           </div>
         </div>
         <div class="list-row-right">
           ${isEnrolled ? `
-            <span class="pill-badge emerald">Enrolled (Yr ${state.education.currentUniversity.year}/${uni.totalYears || 4})</span>
+            <span class="mono-val">Enrolled (Yr ${state.education.currentUniversity.year}/${uni.totalYears || 4})</span>
           ` : `
-            <button class="btn btn-sm btn-apply-uni" data-uni="${uni.id}">
+            <button class="btn btn-outline btn-sm btn-apply-uni" data-uni="${uni.id}" type="button">
               Apply
             </button>
           `}
@@ -92,74 +100,56 @@ function renderEducationSubtab(state, country, birthCountry) {
   }).join("");
 
   return `
-    <!-- Current Academic Status -->
-    <div class="card">
-      <div class="card-title-row">
-        <div class="card-title">
-          <span>📖</span> Academic Progress
-        </div>
-        <span class="pill-badge emerald">${state.education.currentUniversity ? `University (Year ${state.education.currentUniversity.year})` : state.education.stage}</span>
+    <!-- Academic Status -->
+    <h2 class="section-heading first">Academic status</h2>
+    <div class="detail-grid">
+      <div>
+        <div class="detail-label">Curriculum / Institution</div>
+        <div class="detail-val">${state.education.currentUniversity ? state.education.currentUniversity.name : boardName}</div>
       </div>
-
-      <div style="font-size: 13px; margin-bottom: 12px; line-height: 1.5;">
-        ${state.education.currentUniversity ? `
-          <div><strong>Institution:</strong> ${state.education.currentUniversity.name}</div>
-          <div><strong>Major:</strong> ${state.education.currentUniversity.major}</div>
-          <div><strong>Annual Tuition:</strong> $${state.education.currentUniversity.tuitionUSD.toLocaleString()}</div>
-        ` : `
-          <div><strong>Current System:</strong> ${boardName}</div>
-          <div><strong>Academic Rigor:</strong> ${currentBoard ? currentBoard.rigor : 'High'} (GPA: ${state.education.gpa.toFixed(2)}/4.0)</div>
-          <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">${currentBoard ? currentBoard.desc : ''}</div>
-        `}
+      <div>
+        <div class="detail-label">Stage</div>
+        <div class="detail-val">${state.education.currentUniversity ? `Year ${state.education.currentUniversity.year} of ${state.education.currentUniversity.totalYears || 4}` : state.education.stage}</div>
       </div>
-
-      <!-- Study Actions -->
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-        <button class="btn btn-sm" id="btnStudyRigorous">
-          <span>📖</span> Study Hard (+Smarts)
-        </button>
-        <button class="btn btn-sm" id="btnPrivateCoaching">
-          <span>👨‍🏫</span> Elite Coaching ($1.5k)
-        </button>
+      <div>
+        <div class="detail-label">GPA</div>
+        <div class="detail-val-mono">${(state.education.gpa || 3.8).toFixed(2)}<span style="color: var(--text-tertiary);">/4.0</span></div>
       </div>
+      <div>
+        <div class="detail-label">Annual tuition</div>
+        <div class="detail-val-mono">${state.education.currentUniversity ? `$${state.education.currentUniversity.tuitionUSD.toLocaleString()}` : '$0'}</div>
+      </div>
+    </div>
+    <div style="display: flex; gap: 8px; margin-top: 14px;">
+      <button class="btn btn-outline btn-sm" id="btnStudyRigorous" type="button">Study (+smarts)</button>
+      <button class="btn btn-outline btn-sm" id="btnPrivateCoaching" type="button">Coaching ($1,500)</button>
     </div>
 
     <!-- Entrance Exams -->
-    <div class="card">
-      <div class="card-title-row">
-        <div class="card-title">
-          <span>✍️</span> Competitive Entrance Exams
-        </div>
-      </div>
-      <div>
-        ${examsHtml}
-      </div>
+    <h2 class="section-heading">Examinations</h2>
+    <div>
+      ${examsHtml}
     </div>
 
-    <!-- World Universities & Study Abroad -->
-    <div class="card">
-      <div class="card-title-row">
-        <div class="card-title">
-          <span>🌍</span> University Admissions (Domestic & Abroad)
-        </div>
-      </div>
-      <p style="font-size: 11px; color: var(--text-secondary); margin-bottom: 10px;">
-        Apply to world-class institutions like Harvard, Stanford, Oxford, and IIT Bombay. Acceptance requires high Smarts, GPA, and entrance exam scores.
-      </p>
-      <div>
-        ${universitiesHtml}
-      </div>
+    <!-- Global Admissions -->
+    <h2 class="section-heading">Global admissions</h2>
+    <div>
+      ${universitiesHtml}
     </div>
 
     <!-- Completed Degrees -->
     ${state.education.degrees.length > 0 ? `
-      <div class="card">
-        <div class="card-title-row">
-          <div class="card-title"><span>📜</span> Completed Degrees</div>
-        </div>
+      <h2 class="section-heading">Degrees</h2>
+      <div>
         ${state.education.degrees.map(deg => `
-          <div style="padding: 6px 0; font-size: 12px; border-bottom: 1px solid var(--border-color);">
-            <strong>${deg.title}</strong> — ${deg.university} (Age ${deg.graduationAge})
+          <div class="list-row">
+            <div class="list-row-left">
+              <div style="font-size: 15px;">${deg.title}</div>
+              <div style="font-size: 13px; color: var(--text-tertiary); margin-top: 2px;">${deg.university}</div>
+            </div>
+            <div class="list-row-right">
+              <span class="mono-sm">Age ${deg.graduationAge}</span>
+            </div>
           </div>
         `).join("")}
       </div>
@@ -173,71 +163,73 @@ function renderCorporateSubtab(state) {
 
   return `
     <!-- Current Corporate Position -->
-    <div class="card">
-      <div class="card-title-row">
-        <div class="card-title">
-          <span>💼</span> Current Employment
+    <h2 class="section-heading first">Current employment</h2>
+    ${job ? `
+      <div class="detail-grid">
+        <div>
+          <div class="detail-label">Title</div>
+          <div class="detail-val">${job.title}</div>
         </div>
-        ${job ? `<span class="pill-badge emerald">Level ${job.level}</span>` : `<span class="pill-badge">Unemployed</span>`}
+        <div>
+          <div class="detail-label">Base salary</div>
+          <div class="detail-val-mono">$${job.baseSalaryUSD.toLocaleString()}/yr</div>
+        </div>
+        <div>
+          <div class="detail-label">Annual bonus</div>
+          <div class="detail-val-mono">${Math.round(job.bonusPct * 100)}%</div>
+        </div>
+        <div>
+          <div class="detail-label">Stock (RSU)</div>
+          <div class="detail-val-mono">$${job.stockUSD.toLocaleString()}/yr</div>
+        </div>
       </div>
-
-      ${job ? `
-        <div style="margin-bottom: 14px; font-size: 13px; line-height: 1.6;">
-          <h3 style="font-size: 15px; font-weight: 600; color: var(--accent-primary);">${job.title}</h3>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 6px;">
-            <div><strong>Base Salary:</strong> $${job.baseSalaryUSD.toLocaleString()}/yr</div>
-            <div><strong>Annual Bonus:</strong> ${(job.bonusPct * 100)}% target</div>
-            <div><strong>Annual Stock (RSU):</strong> $${job.stockUSD.toLocaleString()}</div>
-            <div><strong>Tenure:</strong> ${job.experienceYears} Years</div>
-          </div>
-          <div style="margin-top: 8px;">
-            <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 3px;">
-              <span>Performance Rating:</span>
-              <span>${job.performance}%</span>
-            </div>
-            <div class="stat-bar-container">
-              <div class="stat-bar-fill" style="width: ${job.performance}%; background-color: var(--accent-emerald);"></div>
-            </div>
-          </div>
+      <div style="margin-top: 14px;">
+        <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--text-tertiary);">
+          <span>Performance</span>
+          <span style="font-family: var(--font-mono); color: var(--ink);">${job.performance}%</span>
         </div>
-
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;">
-          <button class="btn btn-sm" id="btnWorkOvertime">Work Hard</button>
-          <button class="btn btn-sm" id="btnNetworkExecs">Network</button>
-          <button class="btn btn-sm" id="btnQuitJob" style="color: var(--accent-rose);">Resign</button>
+        <div style="height: 2px; background: rgba(22, 21, 15, 0.10); margin-top: 6px;">
+          <div style="height: 2px; width: ${job.performance}%; background: var(--ink);"></div>
         </div>
-      ` : `
-        <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 10px;">
-          You do not have corporate employment. Browse available career tracks below to enter high-paying corporate, legal, tech, and finance roles.
+      </div>
+      <div style="display: flex; gap: 8px; margin-top: 16px;">
+        <button class="btn btn-outline btn-sm" id="btnWorkOvertime" type="button">Work hard</button>
+        <button class="btn btn-outline btn-sm" id="btnNetworkExecs" type="button">Network</button>
+        <button class="btn btn-outline btn-sm" id="btnQuitJob" type="button" style="color: var(--text-tertiary);">Resign</button>
+      </div>
+    ` : `
+      <div class="surface-box" style="text-align: center; padding: 28px;">
+        <div style="font-size: 15px;">No corporate position held</div>
+        <p style="font-size: 13px; color: var(--text-secondary); margin-top: 6px;">
+          Apply to an entry-level track below to begin climbing the professional ladder.
         </p>
-      `}
-    </div>
-
-    <!-- Career Opportunities Catalog -->
-    <div class="card">
-      <div class="card-title-row">
-        <div class="card-title">
-          <span>🏢</span> Corporate & Professional Ladders
-        </div>
       </div>
-      <div style="display: flex; flex-direction: column; gap: 10px;">
-        ${CAREER_TRACKS.map(track => `
+    `}
+
+    <!-- Career Ladders -->
+    <h2 class="section-heading">Career ladders</h2>
+    <div>
+      ${CAREER_TRACKS.map(track => {
+        const ladderPath = track.ladder.map(l => l.title.replace(/ \(.*\)/, '')).join(" → ");
+        return `
           <div class="list-row">
             <div class="list-row-left">
-              <div class="list-icon-box">${track.icon}</div>
-              <div class="list-row-text">
-                <h4>${track.name}</h4>
-                <p>${track.ladder[0].title} ($${track.ladder[0].baseSalaryUSD.toLocaleString()}) → ${track.ladder[track.ladder.length - 1].title} ($${track.ladder[track.ladder.length - 1].baseSalaryUSD.toLocaleString()})</p>
+              <div style="font-size: 15px;">${track.name.replace(/ & .*/, '')}</div>
+              <div style="font-size: 13px; color: var(--text-tertiary); margin-top: 2px; line-height: 1.4;">
+                ${ladderPath}
               </div>
             </div>
             <div class="list-row-right">
-              <button class="btn btn-sm btn-primary btn-apply-job" data-track="${track.id}">
+              <div style="font-family: var(--font-mono); font-size: 13px; color: var(--text-tertiary); margin-bottom: 4px;">
+                $${track.ladder[0].baseSalaryUSD.toLocaleString()}
+              </div>
+              <button class="btn btn-outline btn-sm btn-apply-job" data-track="${track.id}" type="button">
                 Apply
               </button>
             </div>
           </div>
-        `).join("")}
-      </div>
+        `;
+      }).join("")}
     </div>
   `;
 }
@@ -246,55 +238,58 @@ function renderCorporateSubtab(state) {
 function renderSpecialCareersSubtab(state) {
   const sc = state.career.specialCareer;
 
+  const specialList = [
+    { id: "indie_dev", name: "Indie game developer", desc: "Pick genre and platform, publish on Steam, earn sales royalties" },
+    { id: "content_creator", name: "Content creator", desc: "YouTube and Twitch niches, viral algorithm, sponsorships" },
+    { id: "model", name: "Fashion model", desc: "Agency contracts, fashion weeks, Vogue covers" },
+    { id: "musician", name: "Music artist and producer", desc: "Singles, albums, Billboard charting, stadium tours" },
+    { id: "athlete", name: "Professional athlete", desc: "Football, basketball, F1, tennis; club contracts and trophies" },
+    { id: "author", name: "Author and novelist", desc: "Book advances, bestseller lists, adaptation rights" }
+  ];
+
   return `
     <!-- Active Special Career Studio -->
-    <div class="card">
-      <div class="card-title-row">
-        <div class="card-title">
-          <span>✨</span> Special Career Status
+    <h2 class="section-heading first">Active venture</h2>
+    ${sc ? `
+      <div class="detail-grid">
+        <div>
+          <div class="detail-label">Venture</div>
+          <div class="detail-val">${sc.name}</div>
         </div>
-        ${sc ? `<span class="pill-badge purple">${sc.name}</span>` : `<span class="pill-badge">None Active</span>`}
+        <div>
+          <div class="detail-label">Type</div>
+          <div class="detail-val" style="text-transform: capitalize;">${sc.type || 'Creative'}</div>
+        </div>
+        <div>
+          <div class="detail-label">Annual royalties / revenue</div>
+          <div class="detail-val-mono">$${Math.round(sc.annualRoyaltiesUSD || sc.annualStreamingUSD || sc.annualSalesUSD || 0).toLocaleString()}</div>
+        </div>
       </div>
-
-      ${sc ? `
-        <div style="font-size: 13px; line-height: 1.5; margin-bottom: 12px;">
-          <h4>${sc.name}</h4>
-          ${sc.type === 'indie_dev' ? `
-            <p>Total Games Released: ${sc.gamesReleased || 0}</p>
-            <p>Annual Digital Steam Royalties: $${(sc.annualRoyaltiesUSD || 0).toLocaleString()}</p>
-          ` : ''}
-          ${sc.type === 'content_creator' ? `
-            <p>Subscribers: ${(sc.subscribers || 0).toLocaleString()}</p>
-            <p>Channel RPM: $${sc.rpmUSD || 15}/1k views</p>
-          ` : ''}
-        </div>
-      ` : `
-        <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 10px;">
-          Special careers allow you to build independent skill-based empires outside traditional corporate ladders.
+    ` : `
+      <div class="surface-box" style="text-align: center; padding: 28px;">
+        <div style="font-size: 15px;">No active venture</div>
+        <p style="font-size: 13px; color: var(--text-secondary); margin-top: 6px;">
+          Select an unconventional career path below to build an independent audience and royalty streams.
         </p>
-      `}
-
-      <!-- Special Career Launch Buttons -->
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-        <button class="btn btn-sm" id="btnLaunchIndieDev">
-          <span>🎮</span> Indie Game Studio
-        </button>
-        <button class="btn btn-sm" id="btnLaunchCreator">
-          <span>📹</span> Content Creator
-        </button>
-        <button class="btn btn-sm" id="btnLaunchModel">
-          <span>👠</span> Fashion Model
-        </button>
-        <button class="btn btn-sm" id="btnLaunchMusician">
-          <span>🎵</span> Music Artist
-        </button>
-        <button class="btn btn-sm" id="btnLaunchAthlete">
-          <span>🏆</span> Pro Athlete
-        </button>
-        <button class="btn btn-sm" id="btnLaunchAuthor">
-          <span>📖</span> Author / Novelist
-        </button>
       </div>
+    `}
+
+    <!-- Special Careers Catalog -->
+    <h2 class="section-heading">Special careers</h2>
+    <div>
+      ${specialList.map(s => `
+        <div class="list-row">
+          <div class="list-row-left">
+            <div style="font-size: 15px;">${s.name}</div>
+            <div style="font-size: 13px; color: var(--text-tertiary); margin-top: 2px;">${s.desc}</div>
+          </div>
+          <div class="list-row-right">
+            <button class="btn btn-outline btn-sm btn-launch-special" data-special="${s.id}" type="button">
+              Pursue
+            </button>
+          </div>
+        </div>
+      `).join("")}
     </div>
   `;
 }
@@ -314,7 +309,7 @@ export function bindEducationCareerEvents(state, rerenderCallback) {
     btnStudyRigorous.addEventListener("click", () => {
       state.stats.smarts = Math.min(100, state.stats.smarts + 4);
       state.education.gpa = Math.min(4.0, state.education.gpa + 0.05);
-      showToast("Mastered advanced equations and critical analysis! (+4 Smarts, GPA up)", "success");
+      showToast("Completed intensive coursework (+4 smarts, GPA up)", "success");
       rerenderCallback();
     });
   }
@@ -324,14 +319,14 @@ export function bindEducationCareerEvents(state, rerenderCallback) {
   if (btnPrivateCoaching) {
     btnPrivateCoaching.addEventListener("click", () => {
       if (state.finances.cashUSD < 1500) {
-        showToast("Insufficient cash for elite coaching ($1,500).", "error");
+        showToast("Insufficient cash for coaching ($1,500)", "error");
         return;
       }
       state.finances.cashUSD -= 1500;
       state.stats.smarts = Math.min(100, state.stats.smarts + 8);
       state.education.gpa = Math.min(4.0, state.education.gpa + 0.12);
       calculateNetWorth(state);
-      showToast("Attended intensive Olympiad & Entrance Exam coaching! (+8 Smarts)", "success");
+      showToast("Completed entrance exam coaching (+8 smarts)", "success");
       rerenderCallback();
     });
   }
@@ -340,46 +335,45 @@ export function bindEducationCareerEvents(state, rerenderCallback) {
   document.querySelectorAll(".btn-take-exam").forEach(btn => {
     btn.addEventListener("click", () => {
       const examId = btn.dataset.exam;
-      const ex = EXAMS[examId] || (COUNTRIES[state.character.birthCountry].entranceExams.find(e => e.id === examId));
+      const ex = EXAMS[examId] || (COUNTRIES[state.character.birthCountry]?.entranceExams?.find(e => e.id === examId));
       if (!ex) return;
 
       const fee = ex.costUSD || 50;
       if (state.finances.cashUSD < fee) {
-        showToast(`Exam fee is $${fee}. Insufficient funds.`, "error");
+        showToast(`Exam fee is $${fee}. Insufficient funds`, "error");
         return;
       }
 
       state.finances.cashUSD -= fee;
 
-      // Scoring formula based on smarts
       let scoreText = "";
       if (examId === "sat") {
         const satScore = Math.min(1600, Math.round(900 + (state.stats.smarts / 100) * 700 + (Math.random() * 80 - 40)));
         state.education.examScores.sat = satScore;
-        scoreText = `SAT Score: ${satScore} / 1600`;
+        scoreText = `SAT: ${satScore} / 1600`;
       } else if (examId === "jee") {
         const jeePercentile = Math.min(99.98, Math.round((70 + (state.stats.smarts / 100) * 29.8) * 100) / 100);
         state.education.examScores.jee = jeePercentile;
-        scoreText = `JEE Percentile: ${jeePercentile}%ile`;
+        scoreText = `JEE: ${jeePercentile}%ile`;
       } else if (examId === "neet") {
         const neetScore = Math.min(720, Math.round(400 + (state.stats.smarts / 100) * 315));
         state.education.examScores.neet = neetScore;
-        scoreText = `NEET Score: ${neetScore} / 720`;
+        scoreText = `NEET: ${neetScore} / 720`;
       } else if (examId === "ielts") {
         const band = Math.min(9.0, Math.round((5.5 + (state.stats.smarts / 100) * 3.5) * 2) / 2);
         state.education.examScores.ielts = band;
-        scoreText = `IELTS Band: ${band} / 9.0`;
+        scoreText = `IELTS: ${band} / 9.0`;
       } else if (examId === "cat") {
         const catPct = Math.min(99.9, Math.round((60 + (state.stats.smarts / 100) * 39.8) * 10) / 10);
         state.education.examScores.cat = catPct;
-        scoreText = `CAT Percentile: ${catPct}%ile`;
+        scoreText = `CAT: ${catPct}%ile`;
       } else {
         state.education.examScores[examId] = 95;
-        scoreText = `Exam passed successfully!`;
+        scoreText = `Exam completed`;
       }
 
       calculateNetWorth(state);
-      showToast(`Exam Completed! Result: ${scoreText}`, "celebrate");
+      showToast(`Exam completed: ${scoreText}`, "celebrate");
       rerenderCallback();
     });
   });
@@ -395,26 +389,25 @@ export function bindEducationCareerEvents(state, rerenderCallback) {
 
       openModal(`Apply to ${uni.name}`, `
         <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;">
-          ${uni.city}, ${uni.country.toUpperCase()} • Acceptance Rate: ${(uni.acceptanceRate * 100).toFixed(1)}%
+          ${uni.city}, ${uni.country.toUpperCase()} · Acceptance rate: ${(uni.acceptanceRate * 100).toFixed(1)}%
         </p>
         <div class="input-group">
-          <label class="input-label">Select Degree Major</label>
+          <label class="input-label">Degree major</label>
           <select id="selectUniMajor" class="input-field">
             ${majorsOptions}
           </select>
         </div>
-        <div style="font-size: 12px; margin-bottom: 14px; background: var(--bg-card); padding: 10px; border-radius: 8px;">
-          <div>Annual Tuition: <strong>$${uni.tuitionPerYearUSD.toLocaleString()}</strong></div>
-          <div>Minimum Smarts Req: <strong>${uni.minSmarts}</strong> (Yours: ${state.stats.smarts})</div>
-          ${uni.minSAT ? `<div>Minimum SAT Score: <strong>${uni.minSAT}</strong> (Yours: ${state.education.examScores.sat || 'Not taken'})</div>` : ''}
+        <div style="font-size: 13px; margin-bottom: 14px; border: 1px solid var(--hairline-strong); padding: 10px; border-radius: 4px; background: var(--surface);">
+          <div>Annual tuition: <strong style="font-family: var(--font-mono);">$${uni.tuitionPerYearUSD.toLocaleString()}</strong></div>
+          <div>Minimum smarts: <strong style="font-family: var(--font-mono);">${uni.minSmarts}</strong> (Current: ${state.stats.smarts})</div>
+          ${uni.minSAT ? `<div>Minimum SAT: <strong style="font-family: var(--font-mono);">${uni.minSAT}</strong> (Current: ${state.education.examScores.sat || 'Not taken'})</div>` : ''}
         </div>
-        <button class="btn btn-primary btn-full" id="btnConfirmUniApply">Submit Application</button>
+        <button class="btn btn-primary btn-full" id="btnConfirmUniApply" type="button">Submit application</button>
       `);
 
-      document.getElementById("btnConfirmUniApply").addEventListener("click", () => {
+      document.getElementById("btnConfirmUniApply")?.addEventListener("click", () => {
         const major = document.getElementById("selectUniMajor").value;
 
-        // Acceptance formula
         let score = (state.stats.smarts - uni.minSmarts) * 3;
         if (state.education.gpa >= uni.minGPA) score += 20;
         if (uni.minSAT && state.education.examScores.sat >= uni.minSAT) score += 30;
@@ -436,10 +429,10 @@ export function bindEducationCareerEvents(state, rerenderCallback) {
           };
           state.stats.happiness = Math.min(100, state.stats.happiness + 25);
           state.stats.prestige = Math.min(100, state.stats.prestige + 10);
-          showToast(`🎉 ACCEPTED! Congratulations, you have been admitted to ${uni.name} studying ${major}!`, "celebrate");
+          showToast(`Admitted to ${uni.name} for ${major}`, "celebrate");
         } else {
           state.stats.happiness = Math.max(10, state.stats.happiness - 10);
-          showToast(`Application rejected by ${uni.name}. Strengthen your test scores and GPA!`, "error");
+          showToast(`Application not accepted by ${uni.name}`, "error");
         }
         rerenderCallback();
       });
@@ -454,17 +447,15 @@ export function bindEducationCareerEvents(state, rerenderCallback) {
       if (!track) return;
 
       const entry = track.ladder[0];
-
-      // Degree requirement check
       const hasReqDegree = track.requiredDegrees.length === 0 || state.education.degrees.some(d => track.requiredDegrees.includes(d.major));
 
       if (!hasReqDegree && track.id !== "civil_service" && state.education.stage !== "University Graduate") {
-        showToast(`Requires a degree in ${track.requiredDegrees[0]} or related field!`, "error");
+        showToast(`Requires a degree in ${track.requiredDegrees[0]} or related field`, "error");
         return;
       }
 
       if (state.stats.smarts < track.minSmarts - 10) {
-        showToast(`You did not pass the technical interviews (Requires ~${track.minSmarts} Smarts).`, "error");
+        showToast(`Interview unsuccessful (requires ~${track.minSmarts} smarts)`, "error");
         return;
       }
 
@@ -480,7 +471,7 @@ export function bindEducationCareerEvents(state, rerenderCallback) {
       };
 
       state.stats.happiness = Math.min(100, state.stats.happiness + 15);
-      showToast(`Hired! You are now a ${entry.title} at $${entry.baseSalaryUSD.toLocaleString()}/year + ${entry.bonusPct * 100}% bonus & stock!`, "celebrate");
+      showToast(`Hired as ${entry.title} at $${entry.baseSalaryUSD.toLocaleString()}/yr`, "celebrate");
       rerenderCallback();
     });
   });
@@ -492,7 +483,7 @@ export function bindEducationCareerEvents(state, rerenderCallback) {
       if (state.career.currentJob) {
         state.career.currentJob.performance = Math.min(100, state.career.currentJob.performance + 10);
         state.stats.happiness = Math.max(10, state.stats.happiness - 3);
-        showToast("Delivered exceptional project milestones! (+10 Job Performance)", "success");
+        showToast("Overtime logged (+10 performance)", "success");
         rerenderCallback();
       }
     });
@@ -505,7 +496,7 @@ export function bindEducationCareerEvents(state, rerenderCallback) {
       if (state.career.currentJob) {
         state.career.currentJob.performance = Math.min(100, state.career.currentJob.performance + 5);
       }
-      showToast("Attended corporate dinners and built executive alliances.", "success");
+      showToast("Executive dinners attended (+3 prestige)", "success");
       rerenderCallback();
     });
   }
@@ -514,173 +505,124 @@ export function bindEducationCareerEvents(state, rerenderCallback) {
   if (btnQuitJob) {
     btnQuitJob.addEventListener("click", () => {
       state.career.currentJob = null;
-      showToast("Resigned from corporate position.", "info");
+      showToast("Resigned from position", "info");
       rerenderCallback();
     });
   }
 
-  // Indie Game Studio Launch
-  const btnLaunchIndieDev = document.getElementById("btnLaunchIndieDev");
-  if (btnLaunchIndieDev) {
-    btnLaunchIndieDev.addEventListener("click", () => {
-      openModal("Launch Indie Game Project", `
-        <div class="input-group">
-          <label class="input-label">Game Title</label>
-          <input type="text" id="inputGameTitle" class="input-field" placeholder="e.g. Neon Horizon RPG" value="Cyberfall Roguelike">
-        </div>
-        <div class="input-group">
-          <label class="input-label">Genre</label>
-          <select id="selectGameGenre" class="input-field">
-            <option value="roguelike">Action Roguelike (High Skill)</option>
-            <option value="cozy_sim">Cozy Farming & Life Sim</option>
-            <option value="cyberpunk_rpg">Sci-Fi Cyberpunk RPG</option>
-            <option value="psychological_horror">Psychological Horror</option>
-          </select>
-        </div>
-        <p style="font-size: 11px; color: var(--text-secondary); margin-bottom: 12px;">
-          Publishing on Steam costs $100 and takes 1 year of active development. Revenue scales with Smarts and game reviews.
-        </p>
-        <button class="btn btn-primary btn-full" id="btnConfirmLaunchGame">Develop & Publish Game ($100)</button>
-      `);
+  // Special Careers Launch Handlers
+  document.querySelectorAll(".btn-launch-special").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const specialId = btn.dataset.special;
+      if (specialId === "indie_dev") {
+        openModal("Launch indie game project", `
+          <div class="input-group">
+            <label class="input-label">Game title</label>
+            <input type="text" id="inputGameTitle" class="input-field" placeholder="e.g. Neon Horizon" value="Cyberfall Roguelike">
+          </div>
+          <div class="input-group">
+            <label class="input-label">Genre</label>
+            <select id="selectGameGenre" class="input-field">
+              <option value="roguelike">Action roguelike</option>
+              <option value="cozy_sim">Cozy simulation</option>
+              <option value="cyberpunk_rpg">Sci-fi RPG</option>
+              <option value="psychological_horror">Psychological horror</option>
+            </select>
+          </div>
+          <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;">
+            Publishing on Steam costs $100. Royalties scale with smarts and reviews.
+          </p>
+          <button class="btn btn-primary btn-full" id="btnConfirmLaunchGame" type="button">Develop & publish ($100)</button>
+        `);
 
-      document.getElementById("btnConfirmLaunchGame").addEventListener("click", () => {
-        const title = document.getElementById("inputGameTitle").value || "Untitled Indie Game";
-        if (state.finances.cashUSD < 100) {
-          showToast("Requires $100 for Steam Direct submission fee.", "error");
-          return;
-        }
-        state.finances.cashUSD -= 100;
-
-        const rating = Math.min(98, Math.max(65, Math.round(55 + (state.stats.smarts / 100) * 40 + Math.random() * 8)));
-        const firstYearSales = Math.round((rating / 100) * 150000 * (0.6 + Math.random() * 0.8));
-
-        state.career.specialCareer = {
-          type: "indie_dev",
-          name: "Indie Game Studio",
-          gamesReleased: (state.career.specialCareer?.gamesReleased || 0) + 1,
-          annualRoyaltiesUSD: firstYearSales
-        };
-
-        state.finances.cashUSD += firstYearSales;
-        state.stats.fame = Math.min(100, state.stats.fame + 10);
-        state.stats.prestige = Math.min(100, state.stats.prestige + 5);
-        calculateNetWorth(state);
-        closeModal();
-
-        showToast(`🎮 '${title}' released on Steam! Review Score: ${rating}% ("Overwhelmingly Positive")! Earned $${firstYearSales.toLocaleString()}!`, "celebrate");
-        rerenderCallback();
-      });
-    });
-  }
-
-  // Content Creator Launch
-  const btnLaunchCreator = document.getElementById("btnLaunchCreator");
-  if (btnLaunchCreator) {
-    btnLaunchCreator.addEventListener("click", () => {
-      openModal("Start YouTube & Streaming Empire", `
-        <div class="input-group">
-          <label class="input-label">Channel Name</label>
-          <input type="text" id="inputChannelName" class="input-field" placeholder="e.g. Apex Tech Lab" value="${state.character.firstName} Media">
-        </div>
-        <div class="input-group">
-          <label class="input-label">Niche</label>
-          <select id="selectNiche" class="input-field">
-            <option value="tech_ai">Tech, AI & High-End Gadgets ($18 RPM)</option>
-            <option value="finance_wealth">Personal Finance & Investing ($32 RPM)</option>
-            <option value="gaming_esports">Gaming & Esports ($6 RPM)</option>
-          </select>
-        </div>
-        <button class="btn btn-primary btn-full" id="btnConfirmCreator">Launch Channel ($500 Gear)</button>
-      `);
-
-      document.getElementById("btnConfirmCreator").addEventListener("click", () => {
-        if (state.finances.cashUSD < 500) {
-          showToast("Requires $500 for camera & mic gear.", "error");
-          return;
-        }
-        state.finances.cashUSD -= 500;
-        const newSubs = Math.round(5000 + Math.random() * 25000 + (state.stats.looks * 100));
-        const adRevenue = Math.round(newSubs * 0.85);
-
+        document.getElementById("btnConfirmLaunchGame")?.addEventListener("click", () => {
+          const title = document.getElementById("inputGameTitle").value || "Untitled indie game";
+          if (state.finances.cashUSD < 100) {
+            showToast("Requires $100 for submission fee", "error");
+            return;
+          }
+          state.finances.cashUSD -= 100;
+          const sales = Math.round(15000 + (state.stats.smarts * 350));
+          state.finances.cashUSD += sales;
+          state.career.specialCareer = {
+            type: "indie_dev",
+            name: title,
+            annualRoyaltiesUSD: sales
+          };
+          closeModal();
+          showToast(`Game published on Steam. Earned $${sales.toLocaleString()} in royalties`, "celebrate");
+          rerenderCallback();
+        });
+      } else if (specialId === "content_creator") {
+        const followers = Math.round(20000 + (state.stats.looks * 400));
+        const rev = Math.round(followers * 0.45);
+        state.finances.cashUSD += rev;
         state.career.specialCareer = {
           type: "content_creator",
-          name: "Digital Media Empire",
-          subscribers: (state.career.specialCareer?.subscribers || 0) + newSubs,
-          annualAdSenseUSD: adRevenue,
-          sponsorshipsUSD: Math.round(adRevenue * 0.6)
+          name: "Digital Creator Studio",
+          followers: followers,
+          annualRoyaltiesUSD: rev
         };
-
-        state.finances.cashUSD += adRevenue;
-        state.stats.fame = Math.min(100, state.stats.fame + 15);
-        calculateNetWorth(state);
-        closeModal();
-
-        showToast(`📹 Video went viral! Gained ${newSubs.toLocaleString()} subscribers and earned $${adRevenue.toLocaleString()} in AdSense!`, "celebrate");
+        showToast(`Channel reached ${followers.toLocaleString()} subscribers. Earned $${rev.toLocaleString()}`, "celebrate");
         rerenderCallback();
-      });
-    });
-  }
-
-  // Model, Musician, Athlete, Author quick hooks
-  const btnLaunchModel = document.getElementById("btnLaunchModel");
-  if (btnLaunchModel) {
-    btnLaunchModel.addEventListener("click", () => {
-      if (state.stats.looks < 70) {
-        showToast("High fashion modeling requires at least 70 Looks! Hit the gym or visit the styling salon.", "error");
-        return;
+      } else if (specialId === "model") {
+        if (state.stats.looks < 75) {
+          showToast("High-fashion agency requires at least 75 looks", "error");
+          return;
+        }
+        const gigPay = Math.round(state.stats.looks * 350);
+        state.finances.cashUSD += gigPay;
+        state.stats.fame = Math.min(100, state.stats.fame + 8);
+        state.stats.prestige = Math.min(100, state.stats.prestige + 6);
+        state.career.specialCareer = {
+          type: "model",
+          name: "High-Fashion Agency Contract",
+          annualRoyaltiesUSD: gigPay
+        };
+        calculateNetWorth(state);
+        showToast(`Walked Paris runway. Earned $${gigPay.toLocaleString()}`, "celebrate");
+        rerenderCallback();
+      } else if (specialId === "musician") {
+        const royalties = Math.round(25000 + Math.random() * 60000);
+        state.finances.cashUSD += royalties;
+        state.stats.fame = Math.min(100, state.stats.fame + 12);
+        state.career.specialCareer = {
+          type: "musician",
+          name: "Music Artist & Producer",
+          annualStreamingUSD: royalties
+        };
+        calculateNetWorth(state);
+        showToast(`Single charted. Collected $${royalties.toLocaleString()} in streaming royalties`, "celebrate");
+        rerenderCallback();
+      } else if (specialId === "athlete") {
+        if (state.stats.health < 75) {
+          showToast("Pro draft requires at least 75 health", "error");
+          return;
+        }
+        const salary = 120000;
+        state.finances.cashUSD += salary;
+        state.stats.fame = Math.min(100, state.stats.fame + 10);
+        state.career.specialCareer = {
+          type: "athlete",
+          name: "Professional Athlete Contract",
+          annualRoyaltiesUSD: salary
+        };
+        calculateNetWorth(state);
+        showToast(`Signed pro club contract. Earned $${salary.toLocaleString()} starting salary`, "celebrate");
+        rerenderCallback();
+      } else if (specialId === "author") {
+        const advance = Math.round(15000 + (state.stats.smarts * 400));
+        state.finances.cashUSD += advance;
+        state.stats.prestige = Math.min(100, state.stats.prestige + 8);
+        state.career.specialCareer = {
+          type: "author",
+          name: "Published Novelist",
+          annualRoyaltiesUSD: advance
+        };
+        calculateNetWorth(state);
+        showToast(`Book published and hit bestseller list. Earned $${advance.toLocaleString()} advance`, "celebrate");
+        rerenderCallback();
       }
-      const gigPay = Math.round(state.stats.looks * 350);
-      state.finances.cashUSD += gigPay;
-      state.stats.fame = Math.min(100, state.stats.fame + 8);
-      state.stats.prestige = Math.min(100, state.stats.prestige + 6);
-      calculateNetWorth(state);
-      showToast(`👠 Walked Paris Fashion Week runway! Earned $${gigPay.toLocaleString()}!`, "celebrate");
-      rerenderCallback();
     });
-  }
-
-  const btnLaunchMusician = document.getElementById("btnLaunchMusician");
-  if (btnLaunchMusician) {
-    btnLaunchMusician.addEventListener("click", () => {
-      const royalties = Math.round(25000 + Math.random() * 60000);
-      state.finances.cashUSD += royalties;
-      state.stats.fame = Math.min(100, state.stats.fame + 12);
-      state.career.specialCareer = {
-        type: "musician",
-        name: "Chart-Topping Music Artist",
-        annualStreamingUSD: royalties
-      };
-      calculateNetWorth(state);
-      showToast(`🎵 Hit single charted on Billboard Hot 100! Collected $${royalties.toLocaleString()} in streaming royalties!`, "celebrate");
-      rerenderCallback();
-    });
-  }
-
-  const btnLaunchAthlete = document.getElementById("btnLaunchAthlete");
-  if (btnLaunchAthlete) {
-    btnLaunchAthlete.addEventListener("click", () => {
-      if (state.stats.health < 75) {
-        showToast("Pro athletic draft requires at least 75 Health!", "error");
-        return;
-      }
-      const salary = 120000;
-      state.finances.cashUSD += salary;
-      state.stats.fame = Math.min(100, state.stats.fame + 10);
-      calculateNetWorth(state);
-      showToast(`🏆 Signed pro club contract! Earned $${salary.toLocaleString()} starting salary!`, "celebrate");
-      rerenderCallback();
-    });
-  }
-
-  const btnLaunchAuthor = document.getElementById("btnLaunchAuthor");
-  if (btnLaunchAuthor) {
-    btnLaunchAuthor.addEventListener("click", () => {
-      const advance = Math.round(15000 + (state.stats.smarts * 400));
-      state.finances.cashUSD += advance;
-      state.stats.prestige = Math.min(100, state.stats.prestige + 8);
-      calculateNetWorth(state);
-      showToast(`📖 Book published and hit the Bestseller List! Received $${advance.toLocaleString()} advance & royalties!`, "celebrate");
-      rerenderCallback();
-    });
-  }
+  });
 }

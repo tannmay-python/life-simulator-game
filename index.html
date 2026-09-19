@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Life Simulator — Modern 9:16 Edition</title>
+  <link rel="stylesheet" href="./css/styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- 9:16 Smartphone Viewport Container -->
+  <div class="app-container">
+    
+    <!-- Top Header Bar -->
+    <header class="top-header">
+      <div class="header-user-info">
+        <div class="header-name" id="headerName">
+          Aarav Sharma <span style="font-size: 14px;">🇮🇳</span>
+        </div>
+        <div class="header-subtitle" id="headerSubtitle">
+          Age 0 • Gen 1 • Newborn Infant
+        </div>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div class="header-wealth">
+          <div class="networth-val" id="headerNetWorth">$2,500</div>
+          <div class="networth-lbl">Net Worth</div>
+        </div>
+        <button class="btn btn-sm" id="btnNewLife" title="Customize Character & Start New Life" style="padding: 5px 8px; font-size: 13px;">
+          ✨ New
+        </button>
+      </div>
+    </header>
+
+    <!-- Prominent Glowing Vitality Stat Bars Row -->
+    <div class="stats-header-strip">
+      <div class="stats-grid">
+        <!-- Health Bar -->
+        <div class="stat-card" id="statHealth">
+          <div class="stat-card-top">
+            <span class="stat-label">❤️ Health</span>
+            <span class="stat-val-text" style="color: #34d399;">95%</span>
+          </div>
+          <div class="stat-bar-container">
+            <div class="stat-bar-fill fill-health" style="width: 95%;"></div>
+          </div>
+        </div>
+
+        <!-- Happiness Bar -->
+        <div class="stat-card" id="statHappiness">
+          <div class="stat-card-top">
+            <span class="stat-label">😊 Happy</span>
+            <span class="stat-val-text" style="color: #fbbf24;">90%</span>
+          </div>
+          <div class="stat-bar-container">
+            <div class="stat-bar-fill fill-happiness" style="width: 90%;"></div>
+          </div>
+        </div>
+
+        <!-- Smarts Bar -->
+        <div class="stat-card" id="statSmarts">
+          <div class="stat-card-top">
+            <span class="stat-label">🧠 Smarts</span>
+            <span class="stat-val-text" style="color: #60a5fa;">85%</span>
+          </div>
+          <div class="stat-bar-container">
+            <div class="stat-bar-fill fill-smarts" style="width: 85%;"></div>
+          </div>
+        </div>
+
+        <!-- Looks Bar -->
+        <div class="stat-card" id="statLooks">
+          <div class="stat-card-top">
+            <span class="stat-label">✨ Looks</span>
+            <span class="stat-val-text" style="color: #f472b6;">80%</span>
+          </div>
+          <div class="stat-bar-container">
+            <div class="stat-bar-fill fill-looks" style="width: 80%;"></div>
+          </div>
+        </div>
+
+        <!-- Energy Bar -->
+        <div class="stat-card" id="statEnergy">
+          <div class="stat-card-top">
+            <span class="stat-label">⚡ Energy</span>
+            <span class="stat-val-text" style="color: #c084fc;">100%</span>
+          </div>
+          <div class="stat-bar-container">
+            <div class="stat-bar-fill fill-energy" style="width: 100%;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Dynamic Viewport Content -->
+    <main class="view-content" id="viewContent">
+      <!-- Views injected by game_engine.js -->
+    </main>
+
+    <!-- Prominent Floating Age-Up Button Bar -->
+    <div class="age-up-bar">
+      <button class="btn-age-up" id="btnAgeUp" type="button">
+        <span style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 17px;">⏳</span> Age Up (+1 Year)
+        </span>
+        <span style="font-size: 13px; opacity: 0.9; font-weight: 600;">Advance Life ➔</span>
+      </button>
+    </div>
+
+    <!-- Sleek Bottom Tab Navigation Bar -->
+    <nav class="bottom-nav">
+      <button class="nav-tab active" data-tab="profile" type="button">
+        <span class="nav-tab-icon">📱</span>
+        <span class="nav-tab-label">Life</span>
+      </button>
+      <button class="nav-tab" data-tab="education_career" type="button">
+        <span class="nav-tab-icon">🎓</span>
+        <span class="nav-tab-label">Career</span>
+      </button>
+      <button class="nav-tab" data-tab="business" type="button">
+        <span class="nav-tab-icon">💼</span>
+        <span class="nav-tab-label">Business</span>
+      </button>
+      <button class="nav-tab" data-tab="finance_assets" type="button">
+        <span class="nav-tab-icon">🏛️</span>
+        <span class="nav-tab-label">Finance</span>
+      </button>
+      <button class="nav-tab" data-tab="relationships" type="button">
+        <span class="nav-tab-icon">👥</span>
+        <span class="nav-tab-label">Dynasty</span>
+      </button>
+      <button class="nav-tab" data-tab="lifestyle" type="button">
+        <span class="nav-tab-icon">🌟</span>
+        <span class="nav-tab-label">Elite</span>
+      </button>
+    </nav>
+
+    <!-- Modal Sheets -->
+    <div class="modal-overlay" id="modalOverlay">
+      <div class="modal-sheet">
+        <div class="modal-header">
+          <h3 class="modal-title" id="modalTitle">Modal Title</h3>
+          <button class="btn-close" id="modalClose" type="button">&times;</button>
+        </div>
+        <div id="modalBody"></div>
+      </div>
+    </div>
+
+    <!-- Toast Notifications Hub -->
+    <div class="toast-container" id="toastContainer"></div>
+
+  </div>
+
+  <!-- Zero-CORS Compatible Engine Script -->
+  <script src="./js/game_engine.js"></script>
+</body>
+</html>
